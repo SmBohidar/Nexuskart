@@ -222,3 +222,19 @@ ACCOUNT_LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 # Custom CSRF Failure view to handle expired tokens gracefully
 CSRF_FAILURE_VIEW = 'nexuskart.views.csrf_failure'
+
+# ==========================================
+# PRODUCTION SECURITY SETTINGS
+# ==========================================
+if not DEBUG:
+    # Force all HTTP traffic to HTTPS
+    SECURE_SSL_REDIRECT = True
+
+    # Secure cookies so they are only sent over HTTPS
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    # HSTS to tell browsers to only ever use HTTPS
+    SECURE_HSTS_SECONDS = 31536000 # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
