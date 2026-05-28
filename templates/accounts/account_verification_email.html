@@ -1,0 +1,14 @@
+{% autoescape off %}
+
+Hi {{user.first_name}},
+
+please click on below link to confirm your Registeration with us.
+http://{{domain}}{% url 'activate' uidb64=uid token=token %}
+
+If you think it's not you, Please Ignore this mail.
+
+Best Regards
+
+NexusKart.
+
+{% endautoescape %}

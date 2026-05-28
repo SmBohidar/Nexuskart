@@ -1,0 +1,355 @@
+{% load static %}
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Payment Successful — Nexuskart</title>
+    
+    <link href="{% static 'image/nexuskartlogo-64x64.webp' %}" rel="shortcut-icon" sizes="64x64" type="image/webp">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Work+Sans:wght@100..900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: '#f8f6f0',
+                        foreground: '#1a2321',
+                        card: '#ffffff',
+                        primary: '#064c3f',
+                        secondary: '#eae6df',
+                        accent: '#c19b6c',
+                        'muted-foreground': '#5e6b67',
+                        border: '#dcd7ce',
+                        input: '#e8e4db',
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+                        sans: ['"Work Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background-color: #f8f6f0;
+            color: #1a2321;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Customize scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #dcd7ce;
+            border-radius: 3px;
+        }
+
+        /* Printable styles */
+        @media print {
+            body {
+                background-color: white !important;
+                color: black !important;
+            }
+            header, footer, .no-print {
+                display: none !important;
+            }
+            .print-container {
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-background text-foreground flex flex-col">
+
+    <!-- Main Navigation Header -->
+    <header class="no-print border-b border-border/60 bg-background z-40">
+        <div class="max-w-7xl mx-auto px-6 sm:px-10 py-5 flex items-center justify-between md:justify-start gap-8">
+            
+            <!-- Branding Wordmark Logo -->
+            <a href="/" class="font-serif leading-none text-2xl sm:text-3xl tracking-tight select-none">
+                <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+            </a>
+
+            <!-- Search & Navigation Block (Hidden on mobile) -->
+            <div class="hidden md:flex items-center gap-4 flex-1 max-w-3xl">
+                <!-- Store Link Button -->
+                <a href="{% url 'store' %}" class="border border-border/80 bg-white px-5 py-2.5 text-[11px] uppercase tracking-[0.25em] hover:border-foreground transition-colors duration-300 shadow-sm whitespace-nowrap">
+                    Store
+                </a>
+
+                <!-- Search Input Form -->
+                <form action="{% url 'search' %}" method="GET" class="flex-1 flex items-center border border-border/80 bg-white focus-within:border-foreground transition-colors shadow-sm">
+                    <input
+                        type="text"
+                        name="keyword"
+                        placeholder="Search drops, labels, or essentials…"
+                        class="flex-1 bg-transparent px-4 py-2.5 text-sm focus:outline-none placeholder:text-muted-foreground/45 text-foreground"
+                    />
+                    <button type="submit" class="px-4 py-2.5 text-muted-foreground hover:text-primary transition-colors">
+                        <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right-aligned Actions Panel -->
+            <div class="flex items-center gap-6 ml-auto">
+                <div class="hidden sm:block text-right text-[10px] uppercase tracking-[0.25em] select-none">
+                    {% if user.id is None %}
+                        <div class="text-muted-foreground">Welcome</div>
+                        <a href="{% url 'login' %}" class="text-foreground hover:text-primary transition-colors font-medium font-bold">
+                            Sign in <span class="text-muted-foreground/60">| Register</span>
+                        </a>
+                    {% else %}
+                        <div class="text-muted-foreground">Welcome, {{ user.first_name }}</div>
+                        <div class="flex gap-2 justify-end">
+                            <a href="{% url 'dashboard' %}" class="text-foreground hover:text-primary transition-colors font-medium font-bold">Dashboard</a>
+                            <span class="text-muted-foreground/60">|</span>
+                            <a href="{% url 'logout' %}" class="text-foreground hover:text-primary transition-colors font-medium font-bold">Sign out</a>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Wishlist link -->
+                <a href="{% url 'wishlist' %}" class="relative p-2 text-foreground hover:text-primary transition-colors" aria-label="Wishlist">
+                    <i class="fa-regular fa-heart text-xl"></i>
+                    {% if wishlist_count > 0 %}
+                    <span class="absolute -top-0.5 -right-0.5 bg-accent text-foreground text-[9px] w-4.5 h-4.5 rounded-full flex items-center justify-center font-bold px-1 border border-background">
+                        {{ wishlist_count }}
+                    </span>
+                    {% endif %}
+                </a>
+
+                <!-- Shopping Bag Cart Badge -->
+                <a href="{% url 'cart' %}" class="relative p-2 text-foreground hover:text-primary transition-colors" aria-label="Cart">
+                    <i class="fa-solid fa-bag-shopping text-xl"></i>
+                    <span class="absolute -top-0.5 -right-0.5 bg-accent text-foreground text-[9px] w-4.5 h-4.5 rounded-full flex items-center justify-center font-bold px-1 border border-background">
+                        {{ cart_count }}
+                    </span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Horizontal Categories Subnav -->
+        <nav class="max-w-7xl mx-auto px-6 sm:px-10 pb-4 flex gap-8 text-[11px] uppercase tracking-[0.3em] text-muted-foreground overflow-x-auto select-none">
+            <a href="{% url 'store' %}" class="whitespace-nowrap hover:text-primary transition-colors">
+                New In
+            </a>
+            {% for cat in links %}
+            <a href="{{ cat.get_url }}" class="whitespace-nowrap hover:text-primary transition-colors">
+                {{ cat.category_name }}
+            </a>
+            {% endfor %}
+        </nav>
+    </header>
+
+    <!-- Success Message Section -->
+    <section class="no-print max-w-7xl mx-auto w-full px-6 sm:px-10 pt-16 pb-8 text-center select-none">
+        <div class="flex flex-col items-center justify-center">
+            <div class="w-16 h-16 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center justify-center mb-6 shadow-sm">
+                <i class="fa-solid fa-circle-check text-3xl"></i>
+            </div>
+            <p class="text-[11px] uppercase tracking-[0.35em] text-accent mb-3 font-bold">THANK YOU FOR YOUR PATRONAGE</p>
+            <h1 class="font-serif text-4xl sm:text-5xl tracking-tight text-foreground">
+                Payment <em class="text-primary font-serif italic font-light">successful</em>.
+            </h1>
+            <p class="mt-4 max-w-md text-muted-foreground leading-relaxed text-sm">
+                We've received your order. A receipt has been dispatched to your email address.
+            </p>
+            
+            <!-- Actions -->
+            <div class="mt-8 flex flex-wrap items-center justify-center gap-4">
+                <a href="{% url 'store' %}" class="bg-primary text-white px-6 py-3.5 text-[11px] uppercase tracking-[0.3em] hover:bg-foreground transition-all duration-300 shadow-sm font-semibold">
+                    Shop more &nbsp;<i class="fa-solid fa-arrow-up-right text-[9px]"></i>
+                </a>
+                <button onclick="window.print()" class="border border-border/80 bg-white text-foreground px-6 py-3.5 text-[11px] uppercase tracking-[0.3em] hover:border-foreground transition-all duration-300 shadow-xs font-semibold">
+                    Print Invoice &nbsp;<i class="fa-solid fa-print text-[9px]"></i>
+                </button>
+                <button type="button" id="download-pdf" class="border border-border/80 bg-white text-foreground px-6 py-3.5 text-[11px] uppercase tracking-[0.3em] hover:border-foreground transition-all duration-300 shadow-xs font-semibold">
+                    Download PDF &nbsp;<i class="fa-solid fa-download text-[9px]"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Invoice Sheet Sheet -->
+    <main class="flex-1 max-w-3xl mx-auto w-full px-6 sm:px-10 pb-24 mt-4">
+        
+        <div class="print-container bg-white border border-border/60 p-8 sm:p-12 shadow-sm space-y-10">
+            
+            <!-- Invoice Header Row -->
+            <div class="flex justify-between items-start border-b border-border/60 pb-8 gap-6">
+                <div>
+                    <h2 class="font-serif text-3xl tracking-tight leading-none">
+                        <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+                    </h2>
+                    <p class="text-[9.5px] uppercase tracking-[0.2em] text-muted-foreground font-bold mt-2">OFFICIAL RECEIPT</p>
+                </div>
+                
+                <div class="text-right text-sm">
+                    <p class="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold mb-1">INVOICED TO</p>
+                    <p class="font-medium text-foreground">{{ order.full_name }}</p>
+                    <p class="text-muted-foreground text-xs mt-0.5">{{ order.full_address }}</p>
+                    <p class="text-muted-foreground text-xs">{{ order.city }}, {{ order.state }}, {{ order.country }}</p>
+                </div>
+            </div>
+
+            <!-- Transaction Details Metadata Block -->
+            <div class="grid sm:grid-cols-2 gap-6 bg-secondary/15 p-6 border border-border/50 text-sm">
+                <div class="space-y-2">
+                    <p class="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">ORDER ID</p>
+                    <p class="font-mono text-base font-bold text-primary">#{{ order_number }}</p>
+                </div>
+                <div class="space-y-2 sm:text-right">
+                    <p class="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">TRANSACTION ID</p>
+                    <p class="font-mono text-xs font-semibold text-foreground truncate select-all">{{ transID }}</p>
+                </div>
+                <div class="space-y-2">
+                    <p class="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">ORDER DATE</p>
+                    <p class="font-medium text-foreground">{{ order.created_at }}</p>
+                </div>
+                <div class="space-y-2 sm:text-right">
+                    <p class="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">STATUS</p>
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 uppercase tracking-wider bg-emerald-50 px-2.5 py-1 border border-emerald-200">
+                        Paid / {{ payment.status|upper }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Receipt Items Table -->
+            <div class="space-y-4">
+                <p class="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">PURCHASED PRODUCTS</p>
+                <div class="border border-border/60 overflow-hidden">
+                    <table class="w-full border-collapse text-left text-sm">
+                        <thead>
+                            <tr class="bg-secondary/15 text-[9.5px] uppercase tracking-[0.25em] text-muted-foreground font-bold border-b border-border/60">
+                                <th class="px-6 py-4">Product Details</th>
+                                <th class="px-6 py-4 text-center">Qty</th>
+                                <th class="px-6 py-4 text-right">Price</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border/60">
+                            {% for item in ordered_products %}
+                            <tr class="hover:bg-secondary/10 transition-colors text-foreground">
+                                <td class="px-6 py-4">
+                                    <p class="font-serif text-lg font-medium leading-tight">{{ item.product.product_name }}</p>
+                                    {% if item.variations.all %}
+                                    <p class="text-[11px] text-muted-foreground mt-1">
+                                        {% for i in item.variations.all %}
+                                            {{ i.variation_category|capfirst }}: {{ i.variation_value|capfirst }}{% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </p>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 text-center font-mono font-medium">{{ item.quantity }}</td>
+                                <td class="px-6 py-4 text-right font-semibold">₹{{ item.product_price }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="bg-secondary/15 font-semibold text-foreground border-t border-border/60 divide-y divide-border/50">
+                            <tr>
+                                <td colspan="2" class="px-6 py-3.5 text-right text-muted-foreground text-xs uppercase tracking-wider">Sub Total:</td>
+                                <td class="px-6 py-3.5 text-right font-semibold">₹{{ subtotal }}</td>
+                            </tr>
+                            {% if order.discount_amount %}
+                            <tr>
+                                <td colspan="2" class="px-6 py-3.5 text-right text-emerald-700 text-xs uppercase tracking-wider">Discount{% if order.discount_code %} ({{ order.discount_code }}){% endif %}:</td>
+                                <td class="px-6 py-3.5 text-right font-semibold text-emerald-700">-₹{{ order.discount_amount }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <td colspan="2" class="px-6 py-3.5 text-right text-muted-foreground text-xs uppercase tracking-wider">Tax:</td>
+                                <td class="px-6 py-3.5 text-right font-semibold">₹{{ order.tax }}</td>
+                            </tr>
+                            <tr class="bg-primary/5 text-primary text-base">
+                                <td colspan="2" class="px-6 py-4 text-right uppercase tracking-wider text-xs font-bold">Grand Total:</td>
+                                <td class="px-6 py-4 text-right font-serif text-lg font-bold">₹{{ order.order_total }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Receipt Footer quote -->
+            <div class="border-t border-border/40 pt-8 text-center">
+                <p class="font-serif italic text-xl text-primary/75">"Thank you for shopping with us."</p>
+                <p class="text-[9.5px] uppercase tracking-[0.2em] text-muted-foreground/60 font-semibold mt-2.5">NEXUSKART EDITORIAL</p>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Editorial Footer -->
+    <footer class="no-print border-t border-border/60 bg-card/45 mt-auto select-none">
+        <div class="max-w-7xl mx-auto px-6 sm:px-10 py-10 flex flex-col sm:flex-row justify-between gap-6 text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-muted-foreground items-center">
+            
+            <div class="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
+                <a href="/" class="font-serif leading-none text-base tracking-tight select-none">
+                    <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+                </a>
+                <span class="text-muted-foreground/60 font-sans">— Your premier fashion & lifestyle store</span>
+            </div>
+            
+            <div class="flex gap-6 font-medium">
+                <a href="{% url 'help' %}" class="hover:text-foreground transition-colors">Help</a>
+                <a href="{% url 'shipping' %}" class="hover:text-foreground transition-colors">Shipping</a>
+                <a href="{% url 'returns' %}" class="hover:text-foreground transition-colors">Returns</a>
+                <a href="{% url 'privacy' %}" class="hover:text-foreground transition-colors">Privacy</a>
+                <a href="{% url 'terms' %}" class="hover:text-foreground transition-colors">Terms</a>
+            </div>
+            
+        </div>
+    </footer>
+
+    <!-- html2pdf for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        document.getElementById('download-pdf').addEventListener('click', function () {
+            // Target the invoice container
+            var element = document.querySelector('.print-container');
+            
+            // Configure PDF options
+            var opt = {
+              margin:       [10, 10, 10, 10], // top, left, bottom, right in mm
+              filename:     'Invoice_{{ order_number }}.pdf',
+              image:        { type: 'jpeg', quality: 0.98 },
+              html2canvas:  { scale: 2, useCORS: true }, // scale 2 for better resolution
+              jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            
+            // Add a temporary class to fix layout issues during generation if necessary
+            element.classList.add('pdf-mode');
+            
+            // Generate PDF
+            html2pdf().set(opt).from(element).save().then(function() {
+                element.classList.remove('pdf-mode');
+            });
+        });
+    </script>
+
+</body>
+</html>

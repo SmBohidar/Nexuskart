@@ -1,0 +1,247 @@
+{% load static %}
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Welcome to Nexuskart</title>
+    
+    <link href="{% static 'image/nexuskartlogo-64x64.webp' %}" rel="shortcut-icon" sizes="64x64" type="image/webp">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Work+Sans:wght@100..900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: 'oklch(0.97 0.012 85)',
+                        foreground: 'oklch(0.18 0.025 160)',
+                        card: 'oklch(0.99 0.008 85)',
+                        primary: 'oklch(0.28 0.055 160)',
+                        secondary: 'oklch(0.93 0.015 85)',
+                        'muted-foreground': 'oklch(0.45 0.02 150)',
+                        border: 'oklch(0.85 0.012 85)',
+                        input: 'oklch(0.88 0.012 85)',
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+                        sans: ['"Work Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --background: oklch(0.97 0.012 85);
+            --primary: oklch(0.28 0.055 160);
+        }
+
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background-color: oklch(0.97 0.012 85);
+            color: oklch(0.18 0.025 160);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Ambient backdrop — luxury emerald, organic asymmetric drift */
+        .ambient-blob {
+            position: absolute;
+            border-radius: 9999px;
+            filter: blur(90px);
+            will-change: transform, opacity;
+            background: radial-gradient(circle, rgba(23, 62, 46, 0.28) 0%, transparent 70%);
+        }
+        
+        .ambient-blob-1 {
+            width: 720px; height: 720px;
+            top: -220px; left: -180px;
+            opacity: 0.85;
+            animation: ambient-drift-1 24s ease-in-out infinite;
+        }
+        
+        .ambient-blob-2 {
+            width: 420px; height: 520px;
+            top: 55%; left: 8%;
+            opacity: 0.55;
+            animation: ambient-drift-2 31s ease-in-out infinite;
+        }
+
+        @keyframes ambient-drift-1 {
+            0%   { transform: translate(0,0) scale(1); opacity: 0.85; }
+            33%  { transform: translate(180px, 90px) scale(1.18); opacity: 0.65; }
+            66%  { transform: translate(80px, 220px) scale(0.95); opacity: 0.9; }
+            100% { transform: translate(0,0) scale(1); opacity: 0.85; }
+        }
+        @keyframes ambient-drift-2 {
+            0%   { transform: translate(0,0) scale(1) rotate(0deg); opacity: 0.55; }
+            40%  { transform: translate(220px, -140px) scale(1.25) rotate(8deg); opacity: 0.35; }
+            75%  { transform: translate(340px, 60px) scale(0.9) rotate(-5deg); opacity: 0.65; }
+            100% { transform: translate(0,0) scale(1) rotate(0deg); opacity: 0.55; }
+        }
+        
+        @media (prefers-reduced-motion: reduce) {
+            .ambient-blob { animation: none; }
+        }
+
+        /* Form input styling overrides */
+        .form-control {
+            width: 100%;
+            background-color: transparent;
+            border: 0;
+            border-bottom: 1px solid oklch(0.85 0.012 85);
+            padding: 0.75rem 0;
+            font-size: 1rem;
+            color: oklch(0.18 0.025 160);
+            transition: border-color 0.2s ease-in-out;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: oklch(0.28 0.055 160);
+            box-shadow: none;
+        }
+        .form-control::placeholder {
+            color: oklch(0.45 0.02 150 / 0.4);
+        }
+    </style>
+</head>
+<body class="relative min-h-screen flex items-center justify-center bg-background overflow-x-hidden px-4 py-12 sm:px-6">
+
+    <!-- Living Ambient Backdrop -->
+    <div aria-hidden="true" class="pointer-events-none fixed inset-0 overflow-hidden">
+        <div class="ambient-blob ambient-blob-1"></div>
+        <div class="ambient-blob ambient-blob-2"></div>
+        <div class="absolute inset-0" style="background: radial-gradient(ellipse at center, transparent 45%, var(--background) 100%);"></div>
+    </div>
+
+    <!-- Main Content Wrapper -->
+    <div class="relative w-full max-w-2xl z-10">
+        
+        <!-- Logo Wordmark -->
+        <a href="/" class="flex justify-center mb-10 select-none font-serif leading-none text-3xl tracking-tight">
+            <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+        </a>
+
+        <!-- Glassmorphism Card -->
+        <div class="relative bg-card/75 backdrop-blur-xl border border-border/60 rounded-sm p-8 sm:p-12 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.18)]">
+            
+            <p class="text-[10px] uppercase tracking-[0.3em] text-muted-foreground mb-3 text-center">
+                Welcome to Nexuskart
+            </p>
+            <h2 class="font-serif text-3xl sm:text-4xl text-foreground leading-tight text-center">
+                Let's set up your <em class="text-primary font-serif">profile</em>.
+            </h2>
+            <p class="mt-3 text-xs sm:text-sm text-muted-foreground text-center max-w-md mx-auto">
+                Add your shipping details now so your first checkout is completely frictionless.
+            </p>
+
+            <!-- Form -->
+            <form action="{% url 'onboarding' %}" method="POST" enctype="multipart/form-data" class="mt-10 space-y-8">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                    <!-- First Name -->
+                    <label class="block">
+                        <span class="block text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-1">First Name</span>
+                        {{ user_form.first_name }}
+                    </label>
+
+                    <!-- Last Name -->
+                    <label class="block">
+                        <span class="block text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-1">Last Name</span>
+                        {{ user_form.last_name }}
+                    </label>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                    <!-- Phone Number -->
+                    <label class="block">
+                        <span class="block text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-1">Phone Number *</span>
+                        {{ user_form.phone_number }}
+                    </label>
+
+                    <!-- Profile Picture -->
+                    <label class="block">
+                        <span class="block text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-1">Profile Picture (Optional)</span>
+                        <div class="pt-2 text-xs text-muted-foreground">
+                            {{ profile_form.profile_picture }}
+                        </div>
+                    </label>
+                </div>
+
+                <div class="pt-4 border-t border-border/60">
+                    <h3 class="font-serif text-xl text-foreground mb-6">Default Shipping Address</h3>
+                    
+                    <div class="space-y-6">
+                        <!-- Address Line 1 -->
+                        <label class="block">
+                            <span class="block text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-1">Address Line 1 *</span>
+                            {{ profile_form.address_line_1 }}
+                        </label>
+                        
+                        <!-- Address Line 2 -->
+                        <label class="block">
+                            <span class="block text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-1">Address Line 2</span>
+                            {{ profile_form.address_line_2 }}
+                        </label>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                            <!-- City -->
+                            <label class="block">
+                                <span class="block text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-1">City</span>
+                                {{ profile_form.city }}
+                            </label>
+                            
+                            <!-- State -->
+                            <label class="block">
+                                <span class="block text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-1">State</span>
+                                {{ profile_form.state }}
+                            </label>
+
+                            <!-- Country -->
+                            <label class="block">
+                                <span class="block text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-1">Country</span>
+                                {{ profile_form.country }}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="pt-6 flex flex-col sm:flex-row items-center gap-4">
+                    <button 
+                        type="submit"
+                        class="w-full sm:w-auto flex-1 bg-primary text-white py-4 text-[11px] uppercase tracking-[0.3em] hover:bg-foreground transition-colors duration-300 shadow-sm text-center"
+                    >
+                        Save & Continue Shopping
+                    </button>
+                    
+                    <!-- Skip Button -->
+                    <button 
+                        type="submit"
+                        name="skip"
+                        value="true"
+                        class="w-full sm:w-auto px-6 py-4 text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors"
+                        formnovalidate
+                    >
+                        Skip for now
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</body>
+</html>

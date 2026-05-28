@@ -1,0 +1,219 @@
+{% load static %}
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Nexuskart — My Wishlist</title>
+    
+    <link href="{% static 'image/nexuskartlogo-64x64.webp' %}" rel="shortcut-icon" sizes="64x64" type="image/webp">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Work+Sans:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Include jQuery since we use AJAX for wishlist toggling -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: 'oklch(0.97 0.012 85)',
+                        foreground: 'oklch(0.18 0.025 160)',
+                        card: 'oklch(0.99 0.008 85)',
+                        primary: 'oklch(0.28 0.055 160)',
+                        secondary: 'oklch(0.93 0.015 85)',
+                        accent: 'oklch(0.72 0.115 80)',
+                        'muted-foreground': 'oklch(0.45 0.02 150)',
+                        border: 'oklch(0.85 0.012 85)',
+                        input: 'oklch(0.88 0.012 85)',
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+                        sans: ['"Work Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Work Sans', sans-serif; background-color: oklch(0.97 0.012 85); color: oklch(0.18 0.025 160); -webkit-font-smoothing: antialiased; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: oklch(0.85 0.012 85); border-radius: 3px; }
+    </style>
+</head>
+<body class="min-h-screen bg-background text-foreground flex flex-col">
+
+    <!-- Main Navigation Header -->
+    <header class="sticky top-0 border-b border-border/60 bg-background z-40">
+        <div class="max-w-7xl mx-auto px-6 sm:px-10 py-5 flex items-center justify-between md:justify-start gap-8">
+            
+            <!-- Branding Wordmark Logo -->
+            <a href="/" class="font-serif leading-none text-2xl sm:text-3xl tracking-tight select-none">
+                <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+            </a>
+
+            <!-- Search -->
+            <div class="hidden md:flex items-center gap-4 flex-1 max-w-3xl">
+                <form action="{% url 'search' %}" method="GET" class="flex-1 flex items-center border border-border/80 bg-white focus-within:border-foreground transition-colors shadow-sm">
+                    <input type="text" name="keyword" placeholder="Search drops, labels, or essentials…" class="flex-1 bg-transparent px-4 py-2.5 text-sm focus:outline-none placeholder:text-muted-foreground/45 text-foreground"/>
+                    <button type="submit" class="px-4 py-2.5 text-muted-foreground hover:text-primary transition-colors">
+                        <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right-aligned Actions Panel -->
+            <div class="flex items-center gap-6 ml-auto">
+                <div class="hidden sm:block text-right text-[10px] uppercase tracking-[0.25em] select-none">
+                    {% if user.id is None %}
+                        <div class="text-muted-foreground">Welcome</div>
+                        <a href="{% url 'login' %}" class="text-foreground hover:text-primary transition-colors font-medium">Sign in <span class="text-muted-foreground/60">| Register</span></a>
+                    {% else %}
+                        <div class="text-muted-foreground">Welcome, {{ user.first_name }}</div>
+                        <div class="flex gap-2 justify-end">
+                            <a href="{% url 'dashboard' %}" class="text-foreground hover:text-primary transition-colors font-medium">Dashboard</a>
+                            <span class="text-muted-foreground/60">|</span>
+                            <a href="{% url 'logout' %}" class="text-foreground hover:text-primary transition-colors font-medium">Sign out</a>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Wishlist link -->
+                <a href="{% url 'wishlist' %}" class="relative p-2 text-primary transition-colors" aria-label="Wishlist">
+                    <i class="fa-solid fa-heart text-xl"></i>
+                    {% if wishlist_count > 0 %}
+                    <span class="absolute -top-0.5 -right-0.5 bg-accent text-foreground text-[9px] w-4.5 h-4.5 rounded-full flex items-center justify-center font-bold px-1 border border-background">
+                        {{ wishlist_count }}
+                    </span>
+                    {% endif %}
+                </a>
+
+                <!-- Shopping Bag Cart Badge -->
+                <a href="{% url 'cart' %}" class="relative p-2 text-foreground hover:text-primary transition-colors" aria-label="Cart">
+                    <i class="fa-solid fa-bag-shopping text-xl"></i>
+                    <span class="absolute -top-0.5 -right-0.5 bg-accent text-foreground text-[9px] w-4.5 h-4.5 rounded-full flex items-center justify-center font-bold px-1 border border-background">
+                        {{ cart_count }}
+                    </span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="flex-1 max-w-7xl mx-auto w-full px-6 sm:px-10 py-12">
+        
+        <!-- Search Results / Section Heading -->
+        <div class="flex items-baseline justify-between mb-8 select-none">
+            <div>
+                <p class="text-[10px] sm:text-[11px] uppercase tracking-[0.35em] text-muted-foreground">Nexuskart Edit</p>
+                <h1 class="font-serif text-4xl sm:text-5xl tracking-tight text-foreground mt-2">
+                    My <em class="text-primary font-serif italic">Wishlist</em>
+                </h1>
+                <p class="text-xs text-muted-foreground mt-3 uppercase tracking-wider font-semibold">
+                    {{ wishlist_count }} items saved
+                </p>
+            </div>
+        </div>
+
+        <!-- Products Catalog Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+            {% if wishlist_items %}
+                {% for item in wishlist_items %}
+                <article class="group cursor-pointer wishlist-item-card" data-product-id="{{ item.product.id }}">
+                    <!-- Image Card Container -->
+                    <div class="relative aspect-[4/5] bg-white border border-border/60 overflow-hidden mb-2.5 shadow-sm">
+                        <div class="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/10 group-hover:from-primary/8 group-hover:to-accent/20 transition-colors z-10"></div>
+                        
+                        <!-- Wishlist button -->
+                        <button class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center text-primary transition-colors border border-border/30 z-20 shadow-xs btn-toggle-wishlist" data-product-id="{{ item.product.id }}" aria-label="Remove from Wishlist">
+                            <i class="fa-solid fa-heart text-xs text-rose-500"></i>
+                        </button>
+                        
+                        <!-- Clothes Real Image Display -->
+                        <div class="absolute inset-0 flex items-center justify-center overflow-hidden">
+                            <img src="{{ item.product.images.url }}" alt="{{ item.product.product_name }}" class="w-full h-full object-cover group-hover:scale-103 transition-transform duration-700 ease-out"/>
+                        </div>
+                    </div>
+
+                    <!-- Quick Add Button -->
+                    <div class="mb-3 px-1">
+                        <a href="{{ item.product.get_url }}" class="block text-center w-full bg-primary text-white py-2.5 text-[10px] uppercase tracking-[0.3em] hover:bg-foreground transition-colors duration-300 shadow-sm font-semibold">
+                            View details
+                        </a>
+                    </div>
+
+                    <!-- Premium Text Details -->
+                    <div class="px-1 select-none">
+                        <div class="text-[9.5px] uppercase tracking-[0.25em] font-bold text-muted-foreground mb-1">{{ item.product.category.category_name }}</div>
+                        <a href="{{ item.product.get_url }}" class="block font-serif text-[17px] leading-tight text-foreground hover:text-primary transition-colors line-clamp-1">{{ item.product.product_name }}</a>
+                        <div class="mt-1.5 text-xs"><span class="font-semibold text-foreground text-sm">₹{{ item.product.price }}</span></div>
+                    </div>
+                </article>
+                {% endfor %}
+            {% else %}
+                <div class="col-span-full py-16 text-center select-none">
+                    <i class="fa-regular fa-heart text-4xl text-muted-foreground/30 mb-4 block"></i>
+                    <h2 class="font-serif text-2xl text-foreground">Your wishlist is empty.</h2>
+                    <p class="text-sm text-muted-foreground mt-2 max-w-sm mx-auto mb-6">Explore our collections and save your favorite items for later.</p>
+                    <a href="{% url 'store' %}" class="inline-block bg-primary text-white px-8 py-3 text-[11px] uppercase tracking-[0.3em] hover:bg-foreground transition-colors duration-300 shadow-sm font-semibold">Browse Store</a>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <!-- Editorial Footer -->
+    <footer class="border-t border-border/60 bg-card/45 mt-auto select-none">
+        <div class="max-w-7xl mx-auto px-6 sm:px-10 py-10 flex flex-col sm:flex-row justify-between gap-6 text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-muted-foreground items-center">
+            <div class="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
+                <a href="/" class="font-serif leading-none text-base tracking-tight select-none">
+                    <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+                </a>
+                <span class="text-muted-foreground/60 font-sans">— Your premier fashion & lifestyle store</span>
+            </div>
+            <div class="flex gap-6 font-medium">
+                <a href="{% url 'help' %}" class="hover:text-foreground transition-colors">Help</a>
+                <a href="{% url 'shipping' %}" class="hover:text-foreground transition-colors">Shipping</a>
+                <a href="{% url 'returns' %}" class="hover:text-foreground transition-colors">Returns</a>
+                <a href="{% url 'privacy' %}" class="hover:text-foreground transition-colors">Privacy</a>
+                <a href="{% url 'terms' %}" class="hover:text-foreground transition-colors">Terms</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        $(document).ready(function() {
+            $('.btn-toggle-wishlist').on('click', function(e) {
+                e.preventDefault();
+                var btn = $(this);
+                var productId = btn.data('product-id');
+                var url = "/store/wishlist/toggle/" + productId + "/";
+
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    success: function(response) {
+                        if (response.status === 'removed') {
+                            // On the wishlist page, removing an item should hide its card
+                            btn.closest('.wishlist-item-card').fadeOut(300, function() {
+                                $(this).remove();
+                                // Optional: check if empty and show empty state
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        if(xhr.status === 401 || xhr.status === 403) {
+                            window.location.href = "{% url 'login' %}";
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

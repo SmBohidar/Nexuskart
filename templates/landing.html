@@ -1,0 +1,380 @@
+{% load static %}
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Nexuskart · Curated Fashion, Delivered</title>
+    
+    <link href="{% static 'image/nexuskartlogo-64x64.webp' %}" rel="shortcut-icon" sizes="64x64" type="image/webp">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Work+Sans:wght@100..900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: 'oklch(0.97 0.012 85)',
+                        foreground: 'oklch(0.18 0.025 160)',
+                        card: 'oklch(0.99 0.008 85)',
+                        primary: 'oklch(0.28 0.055 160)',
+                        secondary: 'oklch(0.93 0.015 85)',
+                        'muted-foreground': 'oklch(0.45 0.02 150)',
+                        border: 'oklch(0.85 0.012 85)',
+                        input: 'oklch(0.88 0.012 85)',
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+                        sans: ['"Work Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --background: oklch(0.97 0.012 85);
+            --primary: oklch(0.28 0.055 160);
+        }
+
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background-color: oklch(0.97 0.012 85);
+            color: oklch(0.18 0.025 160);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Ambient backdrop — luxury emerald, organic asymmetric drift */
+        .ambient-blob {
+            position: absolute;
+            border-radius: 9999px;
+            filter: blur(90px);
+            will-change: transform, opacity;
+            background: radial-gradient(circle, rgba(23, 62, 46, 0.28) 0%, transparent 70%);
+        }
+        
+        .ambient-blob-1 {
+            width: 720px; height: 720px;
+            top: -220px; left: -180px;
+            opacity: 0.85;
+            animation: ambient-drift-1 24s ease-in-out infinite;
+        }
+        
+        .ambient-blob-2 {
+            width: 420px; height: 520px;
+            top: 55%; left: 8%;
+            opacity: 0.55;
+            animation: ambient-drift-2 31s ease-in-out infinite;
+        }
+        
+        .ambient-blob-3 {
+            width: 600px; height: 560px;
+            top: 10%; right: -160px;
+            opacity: 0.7;
+            animation: ambient-drift-3 28s ease-in-out infinite;
+        }
+        
+        .ambient-blob-4 {
+            width: 360px; height: 380px;
+            bottom: -120px; right: 22%;
+            opacity: 0.5;
+            animation: ambient-drift-4 37s ease-in-out infinite;
+        }
+        
+        @keyframes ambient-drift-1 {
+            0%   { transform: translate(0,0) scale(1); opacity: 0.85; }
+            33%  { transform: translate(180px, 90px) scale(1.18); opacity: 0.65; }
+            66%  { transform: translate(80px, 220px) scale(0.95); opacity: 0.9; }
+            100% { transform: translate(0,0) scale(1); opacity: 0.85; }
+        }
+        @keyframes ambient-drift-2 {
+            0%   { transform: translate(0,0) scale(1) rotate(0deg); opacity: 0.55; }
+            40%  { transform: translate(220px, -140px) scale(1.25) rotate(8deg); opacity: 0.35; }
+            75%  { transform: translate(340px, 60px) scale(0.9) rotate(-5deg); opacity: 0.65; }
+            100% { transform: translate(0,0) scale(1) rotate(0deg); opacity: 0.55; }
+        }
+        @keyframes ambient-drift-3 {
+            0%   { transform: translate(0,0) scale(1); opacity: 0.7; }
+            50%  { transform: translate(-160px, 180px) scale(1.1); opacity: 0.45; }
+            100% { transform: translate(0,0) scale(1); opacity: 0.7; }
+        }
+        @keyframes ambient-drift-4 {
+            0%   { transform: translate(0,0) scale(1); opacity: 0.5; }
+            45%  { transform: translate(-260px, -120px) scale(1.3); opacity: 0.3; }
+            100% { transform: translate(0,0) scale(1); opacity: 0.5; }
+        }
+        
+        @media (prefers-reduced-motion: reduce) {
+            .ambient-blob { animation: none; }
+        }
+
+        /* Customize scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: oklch(0.85 0.012 85);
+            border-radius: 3px;
+        }
+
+        /* Scrolling Background Advertisement Marquee */
+        @keyframes marquee {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+            display: inline-block;
+            animation: marquee 35s linear infinite;
+        }
+    </style>
+</head>
+<body class="relative min-h-screen flex flex-col bg-background overflow-x-hidden">
+
+    <!-- Living Ambient Backdrop -->
+    <div aria-hidden="true" class="pointer-events-none absolute inset-0 overflow-hidden z-0">
+        <div class="ambient-blob ambient-blob-1"></div>
+        <div class="ambient-blob ambient-blob-2"></div>
+        <div class="ambient-blob ambient-blob-3"></div>
+        <div class="ambient-blob ambient-blob-4"></div>
+        <div class="absolute inset-0" style="background: radial-gradient(ellipse at center, transparent 45%, var(--background) 100%);"></div>
+
+        <!-- Luxury Typography Scrolling Advertisement Background -->
+        <div class="absolute left-0 right-0 top-[40%] transform -translate-y-1/2 overflow-hidden select-none opacity-[0.035] whitespace-nowrap flex">
+            <div class="animate-marquee text-[12vw] font-serif uppercase tracking-widest font-bold">
+                NEW SEASON DROP 01 &nbsp;·&nbsp; USE CODE RETURN10 FOR 10% OFF &nbsp;·&nbsp; CURATED LUXURY &nbsp;·&nbsp; JOIN THE CLUB &nbsp;·&nbsp;&nbsp;
+            </div>
+            <div class="animate-marquee text-[12vw] font-serif uppercase tracking-widest font-bold">
+                NEW SEASON DROP 01 &nbsp;·&nbsp; USE CODE RETURN10 FOR 10% OFF &nbsp;·&nbsp; CURATED LUXURY &nbsp;·&nbsp; JOIN THE CLUB &nbsp;·&nbsp;&nbsp;
+                <!-- Mobile Menu Hamburger -->
+                <button id="open-mobile-menu" class="md:hidden text-foreground hover:text-primary transition-colors focus:outline-none ml-2">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Minimal Header -->
+    <header class="relative w-full max-w-7xl mx-auto px-6 sm:px-8 py-6 flex items-center justify-between z-10 select-none">
+        <!-- Logo Brand -->
+        <a href="/" class="inline-flex items-baseline font-serif leading-none text-2xl sm:text-3xl tracking-tight select-none">
+            <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+        </a>
+        
+        <!-- Action Button (Toggles based on Login state) -->
+        {% if request.user.is_authenticated %}
+            <div class="flex items-center gap-5">
+                {% if request.user.is_staff %}
+                <a href="{% url 'admin_dashboard' %}" class="text-xs uppercase tracking-[0.25em] font-bold text-accent hover:text-primary transition-colors py-2">
+                    Admin Panel
+                </a>
+                {% endif %}
+                <a href="{% url 'dashboard' %}" class="text-xs uppercase tracking-[0.25em] font-medium text-foreground hover:text-primary transition-colors py-2">
+                    Dashboard
+                </a>
+            </div>
+        {% else %}
+            <a href="{% url 'login' %}" class="text-xs uppercase tracking-[0.25em] font-medium text-foreground hover:text-primary transition-colors py-2">
+                Sign In
+            </a>
+        {% endif %}
+    </header>
+
+    <!-- Mobile Search Bar (Hidden by default) -->
+    <div id="mobile-search-bar" class="hidden md:hidden border-b border-border/60 bg-white px-6 py-3 fixed top-[72px] sm:top-[88px] left-0 w-full z-50 shadow-md">
+        <form action="{% url 'search' %}" method="GET" class="flex items-center border border-border/80 bg-background focus-within:border-foreground transition-colors shadow-sm w-full">
+            <input id="mobile-search-input" type="text" name="keyword" placeholder="Search products..." class="flex-1 bg-transparent px-4 py-2 text-sm focus:outline-none placeholder:text-muted-foreground/45 text-foreground w-full">
+            <button type="submit" class="px-4 py-2 text-muted-foreground hover:text-primary transition-colors">
+                <i class="fa-solid fa-magnifying-glass text-sm"></i>
+            </button>
+        </form>
+    </div>
+
+    <!-- Main Content (Hero Container) -->
+    <main class="relative flex-1 grid lg:grid-cols-[minmax(0,1fr)_420px] items-center gap-12 z-10 max-w-7xl mx-auto w-full px-6 sm:px-8 py-12 sm:py-24">
+        
+        <!-- Left Aligned Text Block -->
+        <div class="w-full max-w-2xl select-none sm:pr-8">
+            
+            <!-- Subtitle Tag -->
+            <p class="text-xs sm:text-sm uppercase tracking-[0.3em] text-muted-foreground mb-6">
+                New Season — Drop 01
+            </p>
+            
+            <!-- Main Hero Header -->
+            <h1 class="font-serif text-5xl sm:text-7xl text-foreground leading-[1.1] sm:leading-[1.1] mb-8">
+                Fashion that <br />
+                <em class="text-primary font-serif italic">moves</em> with you.
+            </h1>
+            
+            <!-- Description Paragraph -->
+            <p class="text-sm sm:text-base text-muted-foreground/90 leading-relaxed max-w-lg mb-10">
+                Nexuskart is a curated fashion destination — handpicked drops, modern essentials, and the labels worth knowing. Sign in to start shopping.
+            </p>
+
+            <!-- CTA Button -->
+            <a 
+                href="{% url 'home' %}" 
+                class="inline-block bg-primary text-white py-4.5 px-10 text-xs sm:text-sm uppercase tracking-[0.3em] hover:bg-foreground transition-colors duration-300 shadow-sm border border-transparent"
+                style="padding-top: 1.125rem; padding-bottom: 1.125rem;"
+            >
+                Shop The Collection &nbsp;→
+            </a>
+            
+            <!-- Mobile & Tablet Compact Offer (Hidden on Desktop) -->
+            <div class="lg:hidden mt-10 sm:mt-14 relative border border-border/80 bg-white/60 backdrop-blur-sm p-6 sm:p-8 overflow-hidden shadow-sm">
+                <!-- Decorative Elements -->
+                <div class="absolute -right-8 -top-8 w-32 h-32 bg-primary/10 rounded-full blur-2xl"></div>
+                <div class="absolute left-0 top-0 w-1.5 h-full bg-primary"></div>
+                
+                <div class="relative z-10 pl-2">
+                    <p class="text-[9px] uppercase tracking-[0.35em] text-primary font-bold mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-gift text-[10px]"></i> Limited Member Offer
+                    </p>
+                    <h3 class="font-serif text-2xl sm:text-3xl text-foreground leading-tight mb-2">
+                        {{ promotion_offer.headline|default:"Welcome back, take 10% off" }}
+                    </h3>
+                    <p class="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-6 max-w-sm">
+                        {{ promotion_offer.body|default:"Use code RETURN10 after your first purchase for a returning-member saving." }}
+                    </p>
+                    
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <div class="flex-1 flex items-center justify-between border border-border/80 bg-white px-4 py-3 shadow-xs">
+                            <span class="text-[9px] uppercase tracking-[0.25em] text-muted-foreground font-bold">Use Code</span>
+                            <span class="font-mono text-base font-bold tracking-[0.18em] text-primary">{{ promotion_offer.code|default:"RETURN10" }}</span>
+                        </div>
+                        <a href="{% url 'register' %}" class="inline-flex items-center justify-center bg-foreground text-background hover:bg-primary px-6 py-3.5 text-[10px] uppercase tracking-[0.25em] transition-colors font-bold shadow-xs">
+                            Claim Offer &nbsp;&rarr;
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- Right Offer Panel -->
+        <aside class="hidden lg:block justify-self-end w-full max-w-sm select-none">
+            <div class="relative overflow-hidden border border-border/70 bg-white/70 backdrop-blur-xl shadow-[0_32px_90px_-50px_rgba(0,0,0,0.35)] p-8">
+                <div class="absolute inset-x-0 top-0 h-1.5 bg-primary"></div>
+                <p class="text-[10px] uppercase tracking-[0.35em] text-muted-foreground font-bold">
+                    Limited member offer
+                </p>
+                <h2 class="mt-5 font-serif text-4xl leading-tight text-foreground">
+                    {{ promotion_offer.headline }}
+                </h2>
+                <p class="mt-4 text-sm leading-relaxed text-muted-foreground">
+                    {{ promotion_offer.body }}
+                </p>
+                <div class="mt-7 border border-primary/20 bg-secondary/40 p-5">
+                    <p class="text-[9px] uppercase tracking-[0.28em] text-muted-foreground font-bold">Apply at checkout</p>
+                    <div class="mt-3 flex items-center justify-between gap-4">
+                        <span class="font-mono text-2xl font-bold tracking-[0.18em] text-primary">{{ promotion_offer.code }}</span>
+                        <span class="text-[10px] uppercase tracking-[0.22em] text-foreground font-bold">Auto eligible</span>
+                    </div>
+                </div>
+                <a href="{% url 'register' %}" class="mt-7 inline-flex w-full items-center justify-center bg-primary text-white py-4 text-[10px] uppercase tracking-[0.28em] hover:bg-foreground transition-colors">
+                    Claim the offer
+                </a>
+            </div>
+        </aside>
+        
+    </main>
+
+    <!-- Mobile Navigation Menu Drawer -->
+    <div id="mobile-menu-wrapper" class="fixed inset-0 z-[100] overflow-hidden hidden" aria-modal="true" role="dialog">
+        <!-- Backdrop -->
+        <div id="mobile-menu-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-xs transition-opacity duration-300 opacity-0"></div>
+        
+        <!-- Drawer Panel -->
+        <div id="mobile-menu-panel" class="absolute top-0 right-0 h-full w-[80%] max-w-[320px] bg-background shadow-2xl border-l border-border/40 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col z-[101]">
+            
+            <!-- Drawer Header -->
+            <div class="flex items-center justify-between px-6 py-5 border-b border-border/60 select-none">
+                <span class="font-serif text-lg tracking-wider uppercase text-foreground">Menu</span>
+                <button id="close-mobile-menu" class="text-muted-foreground hover:text-foreground transition-colors p-1" aria-label="Close menu">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <!-- Drawer Scrollable Content -->
+            <div class="flex-1 overflow-y-auto py-6 select-none flex flex-col gap-6">
+                
+                <!-- Links -->
+                <nav class="flex flex-col px-6 gap-4 text-[11px] uppercase tracking-[0.25em] font-semibold text-muted-foreground">
+                    <a href="{% url 'store' %}" class="hover:text-primary transition-colors py-2">Store</a>
+                    {% for cat in links %}
+                        <a href="{{ cat.get_url }}" class="hover:text-primary transition-colors py-2">{{ cat.category_name }}</a>
+                    {% endfor %}
+                </nav>
+                
+                <hr class="border-border/60 mx-6">
+                
+                <!-- Auth / User -->
+                <div class="px-6 flex flex-col gap-4 text-[11px] uppercase tracking-[0.25em] font-semibold">
+                    {% if user.id is None %}
+                        <a href="{% url 'login' %}" class="text-foreground hover:text-primary transition-colors py-2">Sign in</a>
+                        <a href="{% url 'register' %}" class="text-foreground hover:text-primary transition-colors py-2">Register</a>
+                    {% else %}
+                        <div class="text-muted-foreground/60 mb-2 normal-case tracking-normal text-xs">Signed in as <span class="font-bold text-foreground">{{ user.first_name }}</span></div>
+                        <a href="{% url 'dashboard' %}" class="text-foreground hover:text-primary transition-colors py-2">Dashboard</a>
+                        <a href="{% url 'logout' %}" class="text-rose-600 hover:text-rose-800 transition-colors py-2">Sign out</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script for Mobile Menu -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuWrapper = document.getElementById('mobile-menu-wrapper');
+            const menuBackdrop = document.getElementById('mobile-menu-backdrop');
+            const menuPanel = document.getElementById('mobile-menu-panel');
+            
+            const openMenuBtn = document.getElementById('open-mobile-menu');
+            const closeMenuBtn = document.getElementById('close-mobile-menu');
+            
+            function openMenu() {
+                if(!menuWrapper) return;
+                menuWrapper.classList.remove('hidden');
+                setTimeout(() => {
+                    menuBackdrop.classList.remove('opacity-0');
+                    menuBackdrop.classList.add('opacity-100');
+                    menuPanel.classList.remove('translate-x-full');
+                    menuPanel.classList.add('translate-x-0');
+                }, 10);
+            }
+            
+            function closeMenu() {
+                if(!menuWrapper) return;
+                menuBackdrop.classList.remove('opacity-100');
+                menuBackdrop.classList.add('opacity-0');
+                menuPanel.classList.remove('translate-x-0');
+                menuPanel.classList.add('translate-x-full');
+                
+                setTimeout(() => {
+                    menuWrapper.classList.add('hidden');
+                }, 300);
+            }
+            
+            if(openMenuBtn) openMenuBtn.addEventListener('click', openMenu);
+            if(closeMenuBtn) closeMenuBtn.addEventListener('click', closeMenu);
+            if(menuBackdrop) menuBackdrop.addEventListener('click', closeMenu);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,504 @@
+{% load static %}
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Your Bag — Nexuskart</title>
+    
+    <link href="{% static 'image/nexuskartlogo-64x64.webp' %}" rel="shortcut-icon" sizes="64x64" type="image/webp">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Work+Sans:wght@100..900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: 'oklch(0.97 0.012 85)',
+                        foreground: 'oklch(0.18 0.025 160)',
+                        card: 'oklch(0.99 0.008 85)',
+                        primary: 'oklch(0.28 0.055 160)',
+                        secondary: 'oklch(0.93 0.015 85)',
+                        accent: 'oklch(0.72 0.115 80)',
+                        'muted-foreground': 'oklch(0.45 0.02 150)',
+                        border: 'oklch(0.85 0.012 85)',
+                        input: 'oklch(0.88 0.012 85)',
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+                        sans: ['"Work Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background-color: oklch(0.97 0.012 85);
+            color: oklch(0.18 0.025 160);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Customize scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: oklch(0.85 0.012 85);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-background text-foreground flex flex-col">
+
+    <!-- Main Navigation Header -->
+    <header class="sticky top-0 border-b border-border/60 bg-background z-40">
+        <div class="max-w-7xl mx-auto px-6 sm:px-10 py-5 flex items-center justify-between md:justify-start gap-8">
+            
+            <!-- Branding Wordmark Logo -->
+            <a href="/" class="font-serif leading-none text-2xl sm:text-3xl tracking-tight select-none">
+                <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+            </a>
+
+            <!-- Search & Navigation Block (Hidden on mobile) -->
+            <div class="hidden md:flex items-center gap-4 flex-1 max-w-3xl">
+                <!-- Store Link Button -->
+                <a href="{% url 'store' %}" class="border border-border/80 bg-white px-5 py-2.5 text-[11px] uppercase tracking-[0.25em] hover:border-foreground transition-colors duration-300 shadow-sm whitespace-nowrap">
+                    Store
+                </a>
+
+                <!-- Search Input Form -->
+                <form action="{% url 'search' %}" method="GET" class="flex-1 flex items-center border border-border/80 bg-white focus-within:border-foreground transition-colors shadow-sm">
+                    <input
+                        type="text"
+                        name="keyword"
+                        placeholder="Search drops, labels, or essentials…"
+                        class="flex-1 bg-transparent px-4 py-2.5 text-sm focus:outline-none placeholder:text-muted-foreground/45 text-foreground"
+                    />
+                    <button type="submit" class="px-4 py-2.5 text-muted-foreground hover:text-primary transition-colors">
+                        <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right-aligned Actions Panel -->
+            <div class="flex items-center gap-6 ml-auto">
+                <!-- Welcome & Guest authentication widget -->
+                <div class="hidden sm:block text-right text-[10px] uppercase tracking-[0.25em] select-none">
+                    {% if user.id is None %}
+                        <div class="text-muted-foreground">Welcome</div>
+                        <a href="{% url 'login' %}" class="text-foreground hover:text-primary transition-colors font-medium">
+                            Sign in <span class="text-muted-foreground/60">| Register</span>
+                        </a>
+                    {% else %}
+                        <div class="text-muted-foreground">Welcome, {{ user.first_name }}</div>
+                        <div class="flex gap-2 justify-end">
+                            <a href="{% url 'dashboard' %}" class="text-foreground hover:text-primary transition-colors font-medium">Dashboard</a>
+                            <span class="text-muted-foreground/60">|</span>
+                            <a href="{% url 'logout' %}" class="text-foreground hover:text-primary transition-colors font-medium">Sign out</a>
+                        </div>
+                    {% endif %}
+                </div>
+
+                                <!-- Mobile Search Toggle -->
+                <button onclick="document.getElementById('mobile-search-bar').classList.toggle('hidden'); document.getElementById('mobile-search-input').focus();" class="md:hidden relative p-2 text-foreground hover:text-primary transition-colors" aria-label="Toggle Search">
+                    <i class="fa-solid fa-magnifying-glass text-xl"></i>
+                </button>
+                
+                <!-- Wishlist link -->
+                <a href="{% url 'wishlist' %}" class="relative p-2 text-foreground hover:text-primary transition-colors" aria-label="Wishlist">
+                    <i class="fa-regular fa-heart text-xl"></i>
+                    {% if wishlist_count > 0 %}
+                    <span class="absolute -top-0.5 -right-0.5 bg-accent text-foreground text-[9px] w-4.5 h-4.5 rounded-full flex items-center justify-center font-bold px-1 border border-background">
+                        {{ wishlist_count }}
+                    </span>
+                    {% endif %}
+                </a>
+
+                <!-- Shopping Bag Cart Badge -->
+                <a href="{% url 'cart' %}" class="relative p-2 text-foreground hover:text-primary transition-colors" aria-label="Cart">
+                    <i class="fa-solid fa-bag-shopping text-xl"></i>
+                    <span class="absolute -top-0.5 -right-0.5 bg-accent text-foreground text-[9px] w-4.5 h-4.5 rounded-full flex items-center justify-center font-bold px-1 border border-background">
+                        {{ cart_count }}
+                    </span>
+                </a>
+                
+                <!-- Mobile Menu Hamburger -->
+                <button id="open-mobile-menu" class="md:hidden text-foreground hover:text-primary transition-colors focus:outline-none ml-1">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Horizontal Categories Subnav -->
+        <nav class="max-w-7xl mx-auto px-6 sm:px-10 pb-4 flex gap-8 text-[11px] uppercase tracking-[0.3em] text-muted-foreground overflow-x-auto select-none">
+            <a href="{% url 'store' %}" class="whitespace-nowrap hover:text-primary transition-colors">
+                New In
+            </a>
+            {% for cat in links %}
+            <a href="{{ cat.get_url }}" class="whitespace-nowrap hover:text-primary transition-colors">
+                {{ cat.category_name }}
+            </a>
+            {% endfor %}
+        </nav>
+    </header>
+
+    <!-- Mobile Search Bar (Hidden by default) -->
+    <div id="mobile-search-bar" class="hidden md:hidden border-b border-border/60 bg-white px-6 py-3 fixed top-[72px] sm:top-[88px] left-0 w-full z-50 shadow-md">
+        <form action="{% url 'search' %}" method="GET" class="flex items-center border border-border/80 bg-background focus-within:border-foreground transition-colors shadow-sm w-full">
+            <input id="mobile-search-input" type="text" name="keyword" placeholder="Search products..." class="flex-1 bg-transparent px-4 py-2 text-sm focus:outline-none placeholder:text-muted-foreground/45 text-foreground w-full">
+            <button type="submit" class="px-4 py-2 text-muted-foreground hover:text-primary transition-colors">
+                <i class="fa-solid fa-magnifying-glass text-sm"></i>
+            </button>
+        </form>
+    </div>
+
+    <!-- Hero Header section -->
+    <section class="max-w-7xl mx-auto w-full px-6 sm:px-10 pt-12 pb-10">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 select-none">
+            <div>
+                <p class="text-[11px] uppercase tracking-[0.35em] text-accent mb-4 flex items-center gap-2 font-bold">
+                    <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> ALMOST YOURS
+                </p>
+                <h1 class="font-serif text-5xl sm:text-6xl leading-[1.02] tracking-tight text-foreground">
+                    Your <em class="text-primary font-serif italic font-light">bag</em>.
+                </h1>
+                <p class="mt-4 max-w-md text-muted-foreground leading-relaxed text-sm sm:text-base">
+                    A quiet moment before checkout — review your selected pieces, then we'll wrap them with care.
+                </p>
+            </div>
+            <div class="flex items-center gap-6 text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-muted-foreground font-semibold">
+                <span class="text-foreground">01 · Bag</span>
+                <span class="w-8 h-px bg-border/60"></span>
+                <span>02 · Address</span>
+                <span class="w-8 h-px bg-border/60"></span>
+                <span>03 · Pay</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl mx-auto w-full px-6 sm:px-10 pb-24 select-none">
+        
+        {% if not cart_items %}
+            <!-- Empty state -->
+            <div class="bg-white border border-border/60 py-24 px-6 text-center shadow-sm select-none">
+                <i class="fa-solid fa-basket-shopping text-5xl text-muted-foreground/35 mb-6 block"></i>
+                <h2 class="font-serif italic text-3xl sm:text-4xl text-foreground">"Nothing here yet."</h2>
+                <p class="mt-4 text-sm text-muted-foreground max-w-xs mx-auto">Your shopping bag is currently feeling light. Fill it with pieces to cherish.</p>
+                <a href="{% url 'store' %}" class="mt-8 inline-flex items-center gap-2 bg-primary text-white px-8 py-4.5 text-[11px] uppercase tracking-[0.3em] hover:bg-foreground transition-colors duration-300 shadow-sm" style="padding-top: 1.125rem; padding-bottom: 1.125rem;">
+                    Browse the collection &nbsp;→
+                </a>
+            </div>
+        {% else %}
+            <!-- Cart active state layout -->
+            <div class="grid lg:grid-cols-[1fr_400px] gap-10">
+                
+                <!-- Items list -->
+                <section class="select-none">
+                    <div class="flex items-baseline justify-between mb-6">
+                        <h2 class="font-serif text-2xl tracking-tight text-foreground">
+                            In your bag <span class="text-muted-foreground text-sm font-sans font-normal ml-2">— {{ cart_items|length }} item{% if cart_items|length > 1 %}s{% endif %}</span>
+                        </h2>
+                    </div>
+
+                    <ul class="divide-y divide-border/60 border-y border-border/60">
+                        {% for cart_item in cart_items %}
+                            <li class="py-6 flex gap-5 group items-start sm:items-center">
+                                <!-- Thumb -->
+                                <div class="relative w-24 h-32 sm:w-28 sm:h-36 shrink-0 bg-white border border-border/50 overflow-hidden flex items-center justify-center">
+                                    <img src="{{ cart_item.product.images.url }}" alt="{{ cart_item.product.product_name }}" class="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500" />
+                                    <span class="absolute top-2 left-2 bg-white/95 backdrop-blur px-2 py-0.5 text-[8.5px] uppercase tracking-[0.25em] font-bold border border-border/20 shadow-xs">
+                                        {{ cart_item.product.category.category_name }}
+                                    </span>
+                                </div>
+
+                                <!-- Info and controls -->
+                                <div class="flex-1 flex flex-col h-full sm:h-36 py-1">
+                                    <div class="flex items-start justify-between gap-4">
+                                        <div>
+                                            <a href="{{ cart_item.product.get_url }}" class="font-serif text-xl sm:text-2xl tracking-tight text-foreground hover:text-primary transition-colors block leading-tight">
+                                                {{ cart_item.product.product_name }}
+                                            </a>
+                                            <p class="mt-2 text-xs text-muted-foreground font-medium uppercase tracking-wider flex items-center flex-wrap gap-x-2 gap-y-1">
+                                                {% if cart_item.variations.all %}
+                                                    {% for item in cart_item.variations.all %}
+                                                        <span>{{ item.variation_category|capfirst }}: <strong class="text-foreground/80 font-semibold">{{ item.variation_value|capfirst }}</strong></span>
+                                                        {% if not forloop.last %}<span class="text-muted-foreground/30 font-light">|</span>{% endif %}
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <span class="text-muted-foreground/60 italic lowercase">standard variation</span>
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                        <p class="font-serif text-xl sm:text-2xl tracking-tight text-foreground font-medium">₹{{ cart_item.sub_total }}</p>
+                                    </div>
+
+                                    <div class="mt-auto pt-6 flex items-center justify-between gap-4 flex-wrap">
+                                        <!-- Quantity toggle widget -->
+                                        <div class="inline-flex items-center border border-border/80 bg-white shadow-xs">
+                                            <!-- Decrement button -->
+                                            <a href="{% url 'remove_cart' cart_item.product.id cart_item.id %}" class="w-9 h-9 flex items-center justify-center hover:bg-secondary transition-colors text-foreground" aria-label="Decrease quantity">
+                                                <i class="fa-solid fa-minus text-[10px]"></i>
+                                            </a>
+                                            <span class="w-10 text-center text-sm font-semibold tabular-nums text-foreground select-none">{{ cart_item.quantity }}</span>
+                                            <!-- Increment button -->
+                                            <form action="{% url 'add_cart' cart_item.product.id %}" method="POST" class="inline m-0">
+                                                {% csrf_token %}
+                                                {% for item in cart_item.variations.all %}
+                                                    <input type="hidden" name="{{ item.variation_category|lower }}" value="{{ item.variation_value|capfirst }}">
+                                                {% endfor %}
+                                                <button type="submit" class="w-9 h-9 flex items-center justify-center hover:bg-secondary transition-colors text-foreground border-none bg-transparent" aria-label="Increase quantity">
+                                                    <i class="fa-solid fa-plus text-[10px]"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+
+                                        <!-- Actions links -->
+                                        <div class="flex items-center gap-5 text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-semibold">
+                                            <a href="{% url 'remove_cart_item' cart_item.product.id cart_item.id %}" onclick="return confirm('Are you sure you want to delete this item?')" class="hover:text-rose-600 transition-colors flex items-center gap-1.5 select-none">
+                                                <i class="fa-regular fa-trash-can text-xs"></i> Remove
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+
+                    <!-- Reassurance badges block -->
+                    <div class="mt-10 grid sm:grid-cols-3 gap-px bg-border/60 border border-border/60 shadow-xs">
+                        <div class="bg-white p-5 flex items-center gap-4">
+                            <i class="fa-solid fa-truck-flatbed text-lg text-primary"></i>
+                            <div>
+                                <p class="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-foreground font-bold">Free shipping</p>
+                                <p class="text-xs text-muted-foreground mt-0.5">On orders over ₹250</p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-5 flex items-center gap-4">
+                            <i class="fa-solid fa-arrow-rotate-left text-lg text-primary"></i>
+                            <div>
+                                <p class="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-foreground font-bold">Easy returns</p>
+                                <p class="text-xs text-muted-foreground mt-0.5">30 days, no questions</p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-5 flex items-center gap-4">
+                            <i class="fa-solid fa-shield-halved text-lg text-primary"></i>
+                            <div>
+                                <p class="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-foreground font-bold">Secure checkout</p>
+                                <p class="text-xs text-muted-foreground mt-0.5">Encrypted end-to-end</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Order summary block sidebar -->
+                <aside class="lg:sticky lg:top-24 h-fit space-y-5">
+                    <div class="bg-white border border-border/60 p-7 shadow-xs">
+                        <p class="text-[9.5px] uppercase tracking-[0.35em] text-muted-foreground font-bold">ORDER SUMMARY</p>
+                        <h3 class="mt-2 font-serif text-3xl tracking-tight text-foreground">The numbers</h3>
+
+                        <dl class="mt-6 space-y-3.5 text-sm select-none border-b border-border/50 pb-5">
+                            <div class="flex justify-between">
+                                <dt class="text-muted-foreground">Subtotal</dt>
+                                <dd class="tabular-nums font-medium text-foreground">₹{{ total }}</dd>
+                            </div>
+                            {% if discount_amount %}
+                            <div class="flex justify-between text-emerald-700">
+                                <dt>Discount{% if discount_code %} ({{ discount_code }}){% endif %}</dt>
+                                <dd class="tabular-nums font-bold">-₹{{ discount_amount }}</dd>
+                            </div>
+                            <div class="flex justify-between">
+                                <dt class="text-muted-foreground">Discounted subtotal</dt>
+                                <dd class="tabular-nums font-medium text-foreground">₹{{ discounted_subtotal }}</dd>
+                            </div>
+                            {% endif %}
+                            <div class="flex justify-between">
+                                <dt class="text-muted-foreground">Tax</dt>
+                                <dd class="tabular-nums font-medium text-foreground">₹{{ tax }}</dd>
+                            </div>
+                            <div class="flex justify-between">
+                                <dt class="text-muted-foreground">Shipping</dt>
+                                <dd class="tabular-nums font-medium text-foreground">
+                                    {% if total > 250 %}
+                                        <span class="text-teal-600 font-bold uppercase tracking-wider text-[10px]">Free</span>
+                                    {% else %}
+                                        ₹12.00
+                                    {% endif %}
+                                </dd>
+                            </div>
+                        </dl>
+
+                        {% if messages %}
+                        <div class="mt-4 space-y-2">
+                            {% for message in messages %}
+                            <p class="text-[10px] uppercase tracking-[0.18em] {% if message.tags == 'warning' or message.tags == 'error' %}text-rose-700{% else %}text-emerald-700{% endif %}">{{ message }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <form action="{% url 'apply_discount' %}" method="POST" class="mt-5 flex gap-2">
+                            {% csrf_token %}
+                            <input type="text" name="discount_code" value="{{ discount_code|default:promotion_offer.code }}" class="min-w-0 flex-1 border border-border/80 bg-white px-3 py-2.5 text-xs uppercase tracking-[0.2em] focus:outline-none focus:border-foreground" aria-label="Discount code">
+                            <button type="submit" class="border border-primary bg-primary text-white px-4 py-2.5 text-[10px] uppercase tracking-[0.2em] hover:bg-foreground hover:border-foreground transition-colors">Apply</button>
+                        </form>
+                        {% if discount_code %}
+                        <a href="{% url 'remove_discount' %}" class="mt-2 inline-block text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground">Remove code</a>
+                        {% endif %}
+
+                        <div class="mt-5 flex items-baseline justify-between select-none">
+                            <span class="text-[11px] uppercase tracking-[0.3em] text-muted-foreground font-semibold">Grand total</span>
+                            <span class="font-serif text-3xl tracking-tight tabular-nums text-foreground font-bold">₹{{ grand_total }}</span>
+                        </div>
+
+                        <!-- Checkout CTA -->
+                        <a href="{% url 'checkout' %}" class="mt-8 w-full bg-primary text-white py-4.5 text-[11px] uppercase tracking-[0.3em] hover:bg-foreground transition-colors duration-300 shadow-sm font-semibold inline-flex items-center justify-center gap-2 select-none" style="padding-top: 1.125rem; padding-bottom: 1.125rem;">
+                            Proceed to checkout <i class="fa-solid fa-arrow-up-right text-[10px]"></i>
+                        </a>
+
+                        <a href="{% url 'store' %}" class="mt-3 block text-center w-full border border-border/80 bg-white py-3.5 text-[11px] uppercase tracking-[0.3em] hover:border-foreground transition-colors duration-300 shadow-xs font-semibold select-none">
+                            Continue shopping
+                        </a>
+
+                        <!-- Payment icons -->
+                        <div class="mt-8 flex items-center justify-center gap-4 text-[9.5px] uppercase tracking-[0.25em] text-muted-foreground/60 font-semibold select-none border-t border-border/40 pt-6">
+                            <span>Visa</span><span>·</span><span>Mastercard</span><span>·</span><span>Amex</span><span>·</span><span>PayPal</span>
+                        </div>
+                    </div>
+
+                    <!-- Editorial quote block -->
+                    <div class="bg-secondary/20 border border-border/60 p-6 shadow-sm">
+                        <p class="text-[9.5px] uppercase tracking-[0.35em] text-accent font-bold">A QUIET NOTE</p>
+                        <p class="mt-3 font-serif italic text-lg leading-snug text-foreground/80">
+                            "Buy less, choose well, make it last."
+                        </p>
+                    </div>
+                </aside>
+
+            </div>
+        {% endif %}
+
+    </main>
+
+    <!-- Editorial Footer -->
+    <footer class="border-t border-border/60 bg-card/45 mt-auto select-none">
+        <div class="max-w-7xl mx-auto px-6 sm:px-10 py-10 flex flex-col sm:flex-row justify-between gap-6 text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-muted-foreground items-center">
+            
+            <div class="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
+                <a href="/" class="font-serif leading-none text-base tracking-tight select-none">
+                    <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+                </a>
+                <span class="text-muted-foreground/60 font-sans">— Your premier fashion & lifestyle store</span>
+            </div>
+            
+            <div class="flex gap-6 font-medium">
+                <a href="{% url 'help' %}" class="hover:text-foreground transition-colors">Help</a>
+                <a href="{% url 'shipping' %}" class="hover:text-foreground transition-colors">Shipping</a>
+                <a href="{% url 'returns' %}" class="hover:text-foreground transition-colors">Returns</a>
+                <a href="{% url 'privacy' %}" class="hover:text-foreground transition-colors">Privacy</a>
+                <a href="{% url 'terms' %}" class="hover:text-foreground transition-colors">Terms</a>
+            </div>
+            
+        </div>
+    </footer>
+
+    <!-- Mobile Navigation Menu Drawer -->
+    <div id="mobile-menu-wrapper" class="fixed inset-0 z-[100] overflow-hidden hidden" aria-modal="true" role="dialog">
+        <!-- Backdrop -->
+        <div id="mobile-menu-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-xs transition-opacity duration-300 opacity-0"></div>
+        
+        <!-- Drawer Panel -->
+        <div id="mobile-menu-panel" class="absolute top-0 right-0 h-full w-[80%] max-w-[320px] bg-background shadow-2xl border-l border-border/40 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col z-[101]">
+            
+            <!-- Drawer Header -->
+            <div class="flex items-center justify-between px-6 py-5 border-b border-border/60 select-none">
+                <span class="font-serif text-lg tracking-wider uppercase text-foreground">Menu</span>
+                <button id="close-mobile-menu" class="text-muted-foreground hover:text-foreground transition-colors p-1" aria-label="Close menu">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <!-- Drawer Scrollable Content -->
+            <div class="flex-1 overflow-y-auto py-6 select-none flex flex-col gap-6">
+                
+                <!-- Links -->
+                <nav class="flex flex-col px-6 gap-4 text-[11px] uppercase tracking-[0.25em] font-semibold text-muted-foreground">
+                    <a href="{% url 'store' %}" class="hover:text-primary transition-colors py-2">Store</a>
+                    {% for cat in links %}
+                        <a href="{{ cat.get_url }}" class="hover:text-primary transition-colors py-2">{{ cat.category_name }}</a>
+                    {% endfor %}
+                </nav>
+                
+                <hr class="border-border/60 mx-6">
+                
+                <!-- Auth / User -->
+                <div class="px-6 flex flex-col gap-4 text-[11px] uppercase tracking-[0.25em] font-semibold">
+                    {% if user.id is None %}
+                        <a href="{% url 'login' %}" class="text-foreground hover:text-primary transition-colors py-2">Sign in</a>
+                        <a href="{% url 'register' %}" class="text-foreground hover:text-primary transition-colors py-2">Register</a>
+                    {% else %}
+                        <div class="text-muted-foreground/60 mb-2 normal-case tracking-normal text-xs">Signed in as <span class="font-bold text-foreground">{{ user.first_name }}</span></div>
+                        <a href="{% url 'dashboard' %}" class="text-foreground hover:text-primary transition-colors py-2">Dashboard</a>
+                        <a href="{% url 'logout' %}" class="text-rose-600 hover:text-rose-800 transition-colors py-2">Sign out</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script for Mobile Menu -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuWrapper = document.getElementById('mobile-menu-wrapper');
+            const menuBackdrop = document.getElementById('mobile-menu-backdrop');
+            const menuPanel = document.getElementById('mobile-menu-panel');
+            
+            const openMenuBtn = document.getElementById('open-mobile-menu');
+            const closeMenuBtn = document.getElementById('close-mobile-menu');
+            
+            function openMenu() {
+                if(!menuWrapper) return;
+                menuWrapper.classList.remove('hidden');
+                setTimeout(() => {
+                    menuBackdrop.classList.remove('opacity-0');
+                    menuBackdrop.classList.add('opacity-100');
+                    menuPanel.classList.remove('translate-x-full');
+                    menuPanel.classList.add('translate-x-0');
+                }, 10);
+            }
+            
+            function closeMenu() {
+                if(!menuWrapper) return;
+                menuBackdrop.classList.remove('opacity-100');
+                menuBackdrop.classList.add('opacity-0');
+                menuPanel.classList.remove('translate-x-0');
+                menuPanel.classList.add('translate-x-full');
+                
+                setTimeout(() => {
+                    menuWrapper.classList.add('hidden');
+                }, 300);
+            }
+            
+            if(openMenuBtn) openMenuBtn.addEventListener('click', openMenu);
+            if(closeMenuBtn) closeMenuBtn.addEventListener('click', closeMenu);
+            if(menuBackdrop) menuBackdrop.addEventListener('click', closeMenu);
+        });
+    </script>
+</body>
+</html>

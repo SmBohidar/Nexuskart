@@ -1,0 +1,559 @@
+{% load static %}
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Order Detail · Admin · Nexuskart</title>
+    
+    <link href="{% static 'image/nexuskartlogo-64x64.webp' %}" rel="shortcut-icon" sizes="64x64" type="image/webp">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Work+Sans:wght@100..900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: 'oklch(0.97 0.012 85)',
+                        foreground: 'oklch(0.18 0.025 160)',
+                        card: 'oklch(0.99 0.008 85)',
+                        primary: 'oklch(0.28 0.055 160)',
+                        secondary: 'oklch(0.93 0.015 85)',
+                        accent: 'oklch(0.72 0.115 80)',
+                        'muted-foreground': 'oklch(0.45 0.02 150)',
+                        border: 'oklch(0.85 0.012 85)',
+                        input: 'oklch(0.88 0.012 85)',
+                        destructive: 'oklch(0.52 0.18 28)',
+                        'destructive-foreground': 'oklch(0.97 0.012 85)'
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+                        sans: ['"Work Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                        mono: ['Courier New', 'Courier', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background-color: oklch(0.97 0.012 85);
+            color: oklch(0.18 0.025 160);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Ambient glowing circles */
+        .ambient-glow {
+            position: absolute;
+            border-radius: 9999px;
+            filter: blur(120px);
+            opacity: 0.12;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Customize scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: oklch(0.85 0.012 85);
+            border-radius: 3px;
+        }
+
+        /* Printable styles */
+        @media print {
+            body {
+                background-color: white !important;
+                color: black !important;
+            }
+            header, footer, .no-print {
+                display: none !important;
+            }
+            .print-container {
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-background text-foreground flex flex-col relative overflow-x-hidden">
+
+    <!-- Ambient backdrop blobs -->
+    <div class="ambient-glow bg-primary w-[500px] h-[500px] -top-[200px] -left-[100px]"></div>
+    <div class="ambient-glow bg-accent w-[400px] h-[400px] bottom-[15%] right-[-100px]"></div>
+
+    <!-- AJAX Toast Notification Container -->
+    <div id="ajax-toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm"></div>
+
+    <!-- Header (Admin Branded) -->
+    <header class="no-print border-b border-border/60 bg-background/85 backdrop-blur-sm sticky top-0 z-30 select-none">
+        <div class="max-w-7xl mx-auto px-6 sm:px-10 py-5 flex items-center justify-between gap-6">
+            
+            <!-- Logo Wordmark -->
+            <a href="/" class="font-serif leading-none text-2xl sm:text-3xl tracking-tight select-none">
+                <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+            </a>
+
+            <!-- Subtext Indicator -->
+            <div class="hidden md:flex items-center gap-3">
+                <span class="inline-flex items-center gap-1.5 bg-foreground text-background px-3 py-1.5 text-[9px] uppercase tracking-[0.25em] font-bold">
+                    <i class="fa-solid fa-shield-halved text-[9px]"></i> Admin
+                </span>
+                <span class="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                    Control center
+                </span>
+            </div>
+
+            <!-- Spacer -->
+            <div class="flex-1"></div>
+
+            <!-- Header Action Controls -->
+            <div class="flex items-center gap-4">
+                <!-- Sign out Button -->
+                <a href="{% url 'logout' %}" class="inline-flex items-center justify-center gap-2 border border-border bg-foreground text-background hover:bg-primary px-3.5 py-2 sm:px-4 sm:py-2 text-[10px] uppercase tracking-[0.2em] font-bold shadow-xs transition-colors select-none" title="Sign out">
+                    <i class="fa-solid fa-arrow-right-from-bracket text-[14px] sm:text-[10px]"></i> <span class="hidden sm:inline">Sign out</span>
+                </a>
+
+            </div>
+
+        </div>
+    </header>
+
+    <!-- Header Hero overview section -->
+    <section class="no-print max-w-7xl mx-auto w-full px-6 sm:px-10 pt-14 pb-6 text-center select-none relative z-10">
+        <div class="flex flex-col items-center justify-center">
+            <p class="text-[11px] uppercase tracking-[0.35em] text-accent mb-3 font-bold">ORDER MANAGEMENT</p>
+            <h1 class="font-serif text-4xl sm:text-5xl tracking-tight text-foreground">
+                Order <em class="text-primary font-serif italic font-light">#{{ order.order_number }}</em>
+            </h1>
+            <p class="mt-4 max-w-md text-muted-foreground leading-relaxed text-sm">
+                Placed by {{ order.full_name }} ({{ order.email }}) on {{ order.created_at }}
+            </p>
+            
+            <!-- Actions Buttons -->
+            <div class="mt-8 flex items-center justify-center gap-4">
+                <a href="{% url 'admin_dashboard' %}" class="bg-primary text-white px-5 py-3.5 sm:px-6 text-[11px] uppercase tracking-[0.3em] hover:bg-foreground transition-all duration-300 shadow-sm font-bold flex items-center justify-center" title="Back to Dashboard">
+                    <i class="fa-solid fa-arrow-left text-base sm:text-[9px] sm:mr-2"></i> <span class="hidden sm:inline">Back to Dashboard</span>
+                </a>
+                <button onclick="window.print()" class="hidden md:inline-flex border border-border/80 bg-white text-foreground px-6 py-3.5 text-[11px] uppercase tracking-[0.3em] hover:border-foreground transition-all duration-300 shadow-xs font-bold items-center justify-center">
+                    Print Invoice &nbsp;<i class="fa-solid fa-print text-[9px]"></i>
+                </button>
+                <button type="button" id="download-pdf" class="border border-border/80 bg-white text-foreground px-5 py-3.5 sm:px-6 text-[11px] uppercase tracking-[0.3em] hover:border-foreground transition-all duration-300 shadow-xs font-bold flex items-center justify-center" title="Download PDF">
+                    <span class="hidden sm:inline">Download PDF &nbsp;</span><i class="fa-solid fa-download text-base sm:text-[9px]"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Panels -->
+    <main class="flex-1 max-w-4xl mx-auto w-full px-6 sm:px-10 pb-24 space-y-8 mt-6 relative z-10">
+        
+        <!-- Fulfillment Update Stepper (Exactly like React component) -->
+        <div class="no-print bg-card border border-border/60 p-8 shadow-xs flex flex-col gap-6" id="stepper-card">
+            
+            <div class="flex items-center justify-between gap-4 select-none">
+                <div>
+                    <p class="text-[9.5px] uppercase tracking-[0.25em] text-muted-foreground font-bold">FULFILLMENT FLOW</p>
+                    <h2 class="font-serif text-2xl text-foreground font-bold mt-1">Update Status</h2>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span id="current-badge" class="px-3 py-1.5 text-[10px] uppercase tracking-[0.25em] font-bold {{ status_tone }}">
+                        {{ order.status|upper }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Steps Progress stepper -->
+            <div class="relative py-4 {% if order.status == 'Cancelled' %}hidden{% endif %}" id="stepper-container">
+                
+                <!-- Track Line -->
+                <div class="absolute top-8 left-6 right-6 h-[2px] bg-border/65"></div>
+                <div id="progress-bar" class="absolute top-8 left-6 h-[2px] bg-primary transition-all duration-500" 
+                     style="width: {% if current_idx >= 0 %}calc((100% - 3rem) * {{ current_idx }} / 3){% else %}0%{% endif %};"
+                ></div>
+
+                <!-- Stepper Steps -->
+                <div class="relative grid grid-cols-4 gap-2">
+                    {% for step in status_flow %}
+                    <div class="flex flex-col items-center text-center gap-3 select-none">
+                        
+                        <!-- Bubble circle -->
+                        <div id="bubble-{{ step }}" 
+                            class="w-9 h-9 rounded-full flex items-center justify-center border-2 transition-all duration-300 font-bold font-mono text-sm
+                            {% if forloop.counter0 <= current_idx %}bg-primary border-primary text-white{% else %}bg-background border-border text-muted-foreground/60{% endif %}"
+                        >
+                            {% if forloop.counter0 <= current_idx %}
+                                <i class="fa-solid fa-check text-xs"></i>
+                            {% else %}
+                                {{ forloop.counter }}
+                            {% endif %}
+                        </div>
+
+                        <!-- Step label -->
+                        <span id="label-{{ step }}" 
+                            class="text-[10px] uppercase tracking-[0.25em] font-semibold transition-colors duration-300
+                            {% if forloop.counter0 <= current_idx %}text-foreground font-bold{% else %}text-muted-foreground/50{% endif %}"
+                        >
+                            {{ step }}
+                        </span>
+
+                    </div>
+                    {% endfor %}
+                </div>
+
+            </div>
+
+            <!-- Stepper Cancelled Notification widget -->
+            <div id="cancelled-widget" class="{% if order.status != 'Cancelled' %}hidden{% endif %} border border-destructive/20 bg-destructive/5 p-8 text-center space-y-3 shadow-xs select-none">
+                <div class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-destructive text-white shadow-md text-xl">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                </div>
+                <p class="font-serif text-2xl text-destructive font-bold">This order has been cancelled</p>
+                <p class="text-xs text-muted-foreground leading-none">All payment and shipment transactions are terminated.</p>
+            </div>
+
+            <!-- Fulfillment buttons actions -->
+            <div id="actions-group" class="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 select-none pt-4 border-t border-border/40 mt-4 {% if order.status == 'Cancelled' %}hidden{% endif %}">
+                <button onclick="updateStatusAJAX('New')" class="status-btn inline-flex items-center justify-center gap-2 px-2 py-3 sm:px-5 sm:py-2.5 text-[9px] sm:text-[10px] uppercase tracking-widest sm:tracking-[0.2em] font-bold border border-border bg-card text-foreground hover:bg-foreground hover:text-background transition-colors shadow-xs">
+                    <i class="fa-solid fa-box text-[10px]"></i> Mark New
+                </button>
+                <button onclick="updateStatusAJAX('Accepted')" class="status-btn inline-flex items-center justify-center gap-2 px-2 py-3 sm:px-5 sm:py-2.5 text-[9px] sm:text-[10px] uppercase tracking-widest sm:tracking-[0.2em] font-bold border border-border bg-card text-foreground hover:bg-foreground hover:text-background transition-colors shadow-xs">
+                    <i class="fa-solid fa-clipboard-check text-[10px]"></i> Accepted
+                </button>
+                <button onclick="updateStatusAJAX('Shipped')" class="status-btn inline-flex items-center justify-center gap-2 px-2 py-3 sm:px-5 sm:py-2.5 text-[9px] sm:text-[10px] uppercase tracking-widest sm:tracking-[0.2em] font-bold border border-border bg-card text-foreground hover:bg-foreground hover:text-background transition-colors shadow-xs">
+                    <i class="fa-solid fa-truck-fast text-[10px]"></i> Shipped
+                </button>
+                <button onclick="updateStatusAJAX('Delivered')" class="status-btn inline-flex items-center justify-center gap-2 px-2 py-3 sm:px-5 sm:py-2.5 text-[9px] sm:text-[10px] uppercase tracking-widest sm:tracking-[0.2em] font-bold border border-border bg-card text-foreground hover:bg-foreground hover:text-background transition-colors shadow-xs">
+                    <i class="fa-solid fa-house-circle-check text-[10px]"></i> Delivered
+                </button>
+                
+                <button id="cancel-btn" onclick="updateStatusAJAX('Cancelled')" class="col-span-2 sm:ml-auto inline-flex items-center justify-center gap-2 px-3 py-3 sm:px-6 sm:py-2.5 text-[9px] sm:text-[10px] uppercase tracking-widest sm:tracking-[0.2em] font-bold border border-destructive/20 bg-destructive/5 text-destructive hover:bg-destructive hover:text-white transition-colors shadow-xs">
+                    <i class="fa-solid fa-ban text-[10px]"></i> Cancel Order
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Invoice / Receipt Container (Styled beautifully) -->
+        <div class="print-container bg-card border border-border/60 p-8 sm:p-12 shadow-sm space-y-10">
+            
+            <!-- Invoice Header Row -->
+            <div class="flex justify-between items-start border-b border-border/60 pb-8 gap-6">
+                <div>
+                    <h2 class="font-serif text-3xl tracking-tight leading-none">
+                        <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+                    </h2>
+                    <p class="text-[9.5px] uppercase tracking-[0.2em] text-muted-foreground font-bold mt-2.5">OFFICIAL RECEIPT (ADMIN ONLY)</p>
+                </div>
+                
+                <div class="text-right text-sm">
+                    <p class="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold mb-1">SHIPPING ADDRESS</p>
+                    <p class="font-semibold text-foreground">{{ order.full_name }}</p>
+                    <p class="text-muted-foreground text-xs mt-0.5 select-all">{{ order.full_address }}</p>
+                    <p class="text-muted-foreground text-xs select-all">{{ order.city }}, {{ order.state }}, {{ order.country }}</p>
+                    <p class="text-muted-foreground text-xs font-semibold select-all mt-1"><i class="fa-solid fa-phone text-[9px] mr-1"></i> {{ order.phone }}</p>
+                </div>
+            </div>
+
+            <!-- Transaction Details Metadata Block -->
+            <div class="grid sm:grid-cols-2 gap-6 bg-secondary/15 p-6 border border-border/50 text-sm">
+                <div class="space-y-2">
+                    <p class="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">ORDER ID</p>
+                    <p class="font-mono text-base font-bold text-primary">#{{ order.order_number }}</p>
+                </div>
+                <div class="space-y-2 sm:text-right">
+                    <p class="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">TRANSACTION ID</p>
+                    <p class="font-mono text-xs font-semibold text-foreground truncate select-all">{{ order.payment.payment_id }}</p>
+                </div>
+                <div class="space-y-2">
+                    <p class="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">ORDER DATE</p>
+                    <p class="font-medium text-foreground">{{ order.created_at }}</p>
+                </div>
+                <div class="space-y-2 sm:text-right">
+                    <p class="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">PAYMENT METHOD</p>
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 uppercase tracking-wider bg-emerald-50 px-2.5 py-1 border border-emerald-200">
+                        {{ order.payment.payment_method|upper }} / PAID
+                    </span>
+                </div>
+            </div>
+
+            <!-- Receipt Items Table -->
+            <div class="space-y-4">
+                <p class="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">PRODUCTS SOLD</p>
+                <div class="border border-border/60 overflow-hidden bg-white">
+                    <table class="w-full border-collapse text-left text-sm">
+                        <thead>
+                            <tr class="bg-secondary/15 text-[9.5px] uppercase tracking-[0.25em] text-muted-foreground font-bold border-b border-border/60">
+                                <th class="px-6 py-4">Product Details</th>
+                                <th class="px-6 py-4 text-center">Qty</th>
+                                <th class="px-6 py-4 text-right">Price</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border/60">
+                            {% for item in order_detail %}
+                            <tr class="hover:bg-secondary/10 transition-colors text-foreground">
+                                <td class="px-6 py-4">
+                                    <p class="font-serif text-lg font-medium leading-tight">{{ item.product.product_name }}</p>
+                                    {% if item.variations.all %}
+                                    <p class="text-[11px] text-muted-foreground mt-1 select-none">
+                                        {% for i in item.variations.all %}
+                                            {{ i.variation_category|capfirst }}: {{ i.variation_value|capfirst }}{% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </p>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 text-center font-mono font-medium">{{ item.quantity }}</td>
+                                <td class="px-6 py-4 text-right font-semibold">₹{{ item.product_price }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="bg-secondary/15 font-semibold text-foreground border-t border-border/60 divide-y divide-border/50">
+                            <tr>
+                                <td colspan="2" class="px-6 py-3.5 text-right text-muted-foreground text-xs uppercase tracking-wider">Sub Total:</td>
+                                <td class="px-6 py-3.5 text-right font-semibold">₹{{ subtotal }}</td>
+                            </tr>
+                            {% if order.discount_amount %}
+                            <tr>
+                                <td colspan="2" class="px-6 py-3.5 text-right text-emerald-700 text-xs uppercase tracking-wider">Discount{% if order.discount_code %} ({{ order.discount_code }}){% endif %}:</td>
+                                <td class="px-6 py-3.5 text-right font-semibold text-emerald-700">-₹{{ order.discount_amount }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <td colspan="2" class="px-6 py-3.5 text-right text-muted-foreground text-xs uppercase tracking-wider">Tax:</td>
+                                <td class="px-6 py-3.5 text-right font-semibold">₹{{ order.tax }}</td>
+                            </tr>
+                            <tr class="bg-primary/5 text-primary text-base">
+                                <td colspan="2" class="px-6 py-4 text-right uppercase tracking-wider text-xs font-bold">Grand Total:</td>
+                                <td class="px-6 py-4 text-right font-serif text-lg font-bold">₹{{ order.order_total }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+        </div>
+
+        <!-- Receipt timeline events list for Admin audit (Move outside printable receipt sheet to prevent html2pdf loop freeze) -->
+        <div class="no-print bg-card border border-border/60 p-8 sm:p-10 shadow-sm space-y-4">
+            <p class="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold"><i class="fa-solid fa-list-check text-[9px] mr-1"></i> Audit Trail / Tracking Timeline</p>
+            <div class="relative pl-6 border-l-2 border-border/60 ml-2 space-y-6" id="audit-trail">
+                {% for event in tracking_events %}
+                <div class="relative" id="event-{{ event.id }}">
+                    <!-- Dot circle icon -->
+                    <div class="absolute -left-[31px] top-0.5 bg-background border border-primary w-2.5 h-2.5 rounded-full flex items-center justify-center"></div>
+                    <div class="text-sm">
+                        <span class="font-bold text-foreground">{{ event.title }}</span>
+                        <span class="text-xs text-muted-foreground font-medium ml-2">({{ event.created_at }})</span>
+                    </div>
+                    {% if event.description %}
+                    <p class="text-xs text-muted-foreground/80 mt-1 leading-relaxed">{{ event.description }}</p>
+                    {% endif %}
+                    {% if event.created_by %}
+                    <p class="text-[9px] uppercase tracking-wider text-accent font-semibold mt-0.5">Recorded by: {{ event.created_by.first_name }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Editorial Footer -->
+    <footer class="no-print border-t border-border/60 bg-card/45 mt-auto select-none">
+        <div class="max-w-7xl mx-auto px-6 sm:px-10 py-8 flex flex-col sm:flex-row justify-between gap-6 text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-muted-foreground items-center">
+            <div class="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
+                <a href="/" class="font-serif leading-none text-base tracking-tight select-none">
+                    <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+                </a>
+                <span class="text-muted-foreground/60 font-sans">— Order Management Detail</span>
+            </div>
+            <div class="flex gap-6 font-semibold">
+                <span class="text-muted-foreground">Nexuskart Staff Only</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        document.getElementById('download-pdf').addEventListener('click', function () {
+            // Using standard print which allows saving to PDF gracefully without freezing
+            window.print();
+            showToast("Please select 'Save as PDF' in the print dialog.");
+        });
+
+        // Dynamic Toast Alerts
+        function showToast(message, isError = false) {
+            const container = document.getElementById('ajax-toast-container');
+            const toast = document.createElement('div');
+            toast.className = `bg-white border-l-4 ${isError ? 'border-destructive' : 'border-primary'} px-5 py-4 shadow-xl flex items-start gap-4 transition-all duration-500 transform translate-x-10 opacity-0`;
+            
+            toast.innerHTML = `
+                <div class="text-xl">
+                    <i class="fa-solid ${isError ? 'fa-circle-exclamation text-destructive' : 'fa-circle-check text-primary'}"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-xs uppercase tracking-widest text-muted-foreground">Notification</p>
+                    <p class="text-sm font-semibold mt-0.5">${message}</p>
+                </div>
+                <button class="text-muted-foreground/60 hover:text-foreground text-sm leading-none">&times;</button>
+            `;
+            
+            toast.querySelector('button').addEventListener('click', () => {
+                toast.classList.add('opacity-0', 'translate-x-10');
+                setTimeout(() => toast.remove(), 500);
+            });
+
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('opacity-0', 'translate-x-10');
+                toast.classList.add('translate-x-0');
+            }, 50);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-x-10');
+                setTimeout(() => toast.remove(), 500);
+            }, 4500);
+        }
+
+        // Stepper updates via AJAX
+        function updateStatusAJAX(newStatus) {
+            fetch("{% url 'admin_dashboard_update_status' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: `order_id={{ order.id }}&status=${newStatus}`
+            })
+            .then(response => response.json().then(data => ({ status: response.status, body: data })))
+            .then(res => {
+                if (res.status === 200 && res.body.success) {
+                    showToast(res.body.message);
+                    
+                    // Update Stepper Tones & Stepper bubble states
+                    const badge = document.getElementById('current-badge');
+                    if (badge) {
+                        badge.innerText = newStatus.toUpperCase();
+                        
+                        // Reset all badge styles
+                        badge.className = "px-3 py-1.5 text-[10px] uppercase tracking-[0.25em] font-bold ";
+                        if (newStatus === 'New') badge.classList.add('bg-foreground', 'text-background', 'border', 'border-foreground');
+                        else if (newStatus === 'Accepted') badge.classList.add('bg-primary/10', 'text-primary', 'border', 'border-primary/20');
+                        else if (newStatus === 'Shipped') badge.classList.add('bg-accent/15', 'text-accent', 'border', 'border-accent/30');
+                        else if (newStatus === 'Delivered' || newStatus === 'Completed') badge.classList.add('bg-emerald-50', 'text-emerald-800', 'border', 'border-emerald-200');
+                        else if (newStatus === 'Cancelled') badge.classList.add('bg-destructive/15', 'text-destructive', 'border', 'border-destructive/20');
+                    }
+
+                    // Handle Stepper elements vs Cancelled States
+                    const stepperContainer = document.getElementById('stepper-container');
+                    const cancelBtn = document.getElementById('cancel-btn');
+                    const cancelledWidget = document.getElementById('cancelled-widget');
+                    const actionsGroup = document.getElementById('actions-group');
+
+                    if (newStatus === 'Cancelled') {
+                        stepperContainer.classList.add('hidden');
+                        cancelBtn.classList.add('hidden');
+                        actionsGroup.classList.add('hidden');
+                        cancelledWidget.classList.remove('hidden');
+                    } else {
+                        stepperContainer.classList.remove('hidden');
+                        cancelBtn.classList.remove('hidden');
+                        actionsGroup.classList.remove('hidden');
+                        cancelledWidget.classList.add('hidden');
+
+                        // Re-calculate stepper bubbles index
+                        const steps = ['New', 'Accepted', 'Shipped', 'Delivered'];
+                        const idx = steps.indexOf(newStatus);
+                        
+                        // Update stepper width
+                        const progress = document.getElementById('progress-bar');
+                        if (progress) {
+                            progress.style.width = `calc((100% - 3rem) * ${idx} / 3)`;
+                        }
+
+                        // Update Stepper bubbles and labels
+                        steps.forEach((step, i) => {
+                            const bubble = document.getElementById(`bubble-${step}`);
+                            const label = document.getElementById(`label-${step}`);
+                            if (bubble) {
+                                if (i <= idx) {
+                                    bubble.className = "w-9 h-9 rounded-full flex items-center justify-center border-2 border-primary bg-primary text-white font-bold font-mono text-sm";
+                                    bubble.innerHTML = '<i class="fa-solid fa-check text-xs"></i>';
+                                } else {
+                                    bubble.className = "w-9 h-9 rounded-full flex items-center justify-center border-2 border-border bg-background text-muted-foreground/60 font-bold font-mono text-sm";
+                                    bubble.innerHTML = i + 1;
+                                }
+                            }
+                            if (label) {
+                                if (i <= idx) {
+                                    label.className = "text-[10px] uppercase tracking-[0.25em] font-bold text-foreground";
+                                } else {
+                                    label.className = "text-[10px] uppercase tracking-[0.25em] font-semibold text-muted-foreground/50";
+                                }
+                            }
+                        });
+                    }
+
+                    // Dynamically append new event block to audit trail list
+                    const auditTrail = document.getElementById('audit-trail');
+                    if (auditTrail) {
+                        const eventDiv = document.createElement('div');
+                        eventDiv.className = 'relative opacity-0 transform -translate-y-2 transition-all duration-500';
+                        
+                        const titleCopy = newStatus === 'Cancelled' ? 'Order cancelled' : 
+                                          newStatus === 'New' ? 'Order placed' :
+                                          newStatus === 'Accepted' ? 'Accepted' :
+                                          newStatus === 'Shipped' ? 'Shipped' : 'Delivered';
+                        
+                        const descCopy = newStatus === 'Cancelled' ? 'This order was cancelled.' : 
+                                         newStatus === 'New' ? 'We received your order.' :
+                                         newStatus === 'Accepted' ? 'Your order has been confirmed.' :
+                                         newStatus === 'Shipped' ? 'Your package is on the way.' : "Enjoy. It's yours.";
+
+                        const timestamp = new Date().toLocaleString('en-US', { hour12: true, month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric' });
+
+                        eventDiv.innerHTML = `
+                            <div class="absolute -left-[31px] top-0.5 bg-background border border-primary w-2.5 h-2.5 rounded-full flex items-center justify-center"></div>
+                            <div class="text-sm">
+                                <span class="font-bold text-foreground">${titleCopy}</span>
+                                <span class="text-xs text-muted-foreground font-medium ml-2">(${timestamp})</span>
+                            </div>
+                            <p class="text-xs text-muted-foreground/80 mt-1 leading-relaxed">${descCopy}</p>
+                            <p class="text-[9px] uppercase tracking-wider text-accent font-semibold mt-0.5">Recorded by: {{ user.first_name }}</p>
+                        `;
+                        auditTrail.appendChild(eventDiv);
+                        setTimeout(() => {
+                            eventDiv.classList.remove('opacity-0', '-translate-y-2');
+                        }, 50);
+                    }
+                } else {
+                    showToast(res.body.error || 'Failed to update order status.', true);
+                }
+            })
+            .catch(err => {
+                console.error('Error updating status:', err);
+                showToast('Network error occurred.', true);
+            });
+        }
+    </script>
+</body>
+</html>

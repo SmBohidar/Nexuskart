@@ -1,0 +1,765 @@
+{% load static %}
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Nexuskart — {{ single_product.product_name }}</title>
+    
+    <link href="{% static 'image/nexuskartlogo-64x64.webp' %}" rel="shortcut-icon" sizes="64x64" type="image/webp">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Work+Sans:wght@100..900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: 'oklch(0.97 0.012 85)',
+                        foreground: 'oklch(0.18 0.025 160)',
+                        card: 'oklch(0.99 0.008 85)',
+                        primary: 'oklch(0.28 0.055 160)',
+                        secondary: 'oklch(0.93 0.015 85)',
+                        accent: 'oklch(0.72 0.115 80)',
+                        'muted-foreground': 'oklch(0.45 0.02 150)',
+                        border: 'oklch(0.85 0.012 85)',
+                        input: 'oklch(0.88 0.012 85)',
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+                        sans: ['"Work Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background-color: oklch(0.97 0.012 85);
+            color: oklch(0.18 0.025 160);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Customize scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: oklch(0.85 0.012 85);
+            border-radius: 3px;
+        }
+
+        /* Star rating inputs style */
+        .rate {
+            display: inline-block;
+            border: 0;
+        }
+        .rate > input {
+            display: none;
+        }
+        .rate > label {
+            float: right;
+            color: oklch(0.8 0.01 80);
+            cursor: pointer;
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+        .rate > label:before {
+            display: inline-block;
+            font-size: 1.6rem;
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            content: "\f005";
+            margin: 0;
+            padding: 0.15rem 0.15rem;
+        }
+        .rate .half:before {
+            content: "\f089";
+            position: absolute;
+            padding-right: 0;
+        }
+        .rate > input:checked ~ label, 
+        .rate:not(:checked) > label:hover, 
+        .rate:not(:checked) > label:hover ~ label {
+            color: #ffb503;
+        }
+        .rate > input:checked + label:hover, 
+        .rate > input:checked ~ label:hover, 
+        .rate > label:hover ~ input:checked ~ label, 
+        .rate > input:checked ~ label:hover ~ label {
+            color: #ffb503;
+        }
+    </style>
+<!-- Include jQuery since we use AJAX for wishlist toggling -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body class="min-h-screen bg-background text-foreground flex flex-col">
+
+    <!-- Main Navigation Header -->
+    <header class="sticky top-0 border-b border-border/60 bg-background z-40">
+        <div class="max-w-7xl mx-auto px-6 sm:px-10 py-5 flex items-center justify-between md:justify-start gap-8">
+            
+            <!-- Branding Wordmark Logo -->
+            <a href="/" class="font-serif leading-none text-2xl sm:text-3xl tracking-tight select-none">
+                <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+            </a>
+
+            <!-- Search Bar spacing -->
+            <div class="hidden md:flex items-center gap-4 flex-1 max-w-3xl">
+                <!-- Search Input Form -->
+                <form action="{% url 'search' %}" method="GET" class="flex-1 flex items-center border border-border/80 bg-white focus-within:border-foreground transition-colors shadow-sm">
+                    <input
+                        type="text"
+                        name="keyword"
+                        placeholder="Search drops, labels, or essentials…"
+                        class="flex-1 bg-transparent px-4 py-2.5 text-sm focus:outline-none placeholder:text-muted-foreground/45 text-foreground"
+                    />
+                    <button type="submit" class="px-4 py-2.5 text-muted-foreground hover:text-primary transition-colors">
+                        <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                    </button>
+                </form>
+
+                <!-- Catalog Link button -->
+                <a href="{% url 'store' %}" class="border border-border/80 bg-white px-5 py-2.5 text-[11px] uppercase tracking-[0.25em] hover:border-foreground transition-colors flex items-center gap-2.5 duration-300 shadow-sm whitespace-nowrap">
+                    <i class="fa-solid fa-sliders text-[10px]"></i> Catalog
+                </a>
+            </div>
+
+            <!-- Right-aligned Actions Widget -->
+            <div class="flex items-center gap-6 ml-auto">
+                <div class="hidden sm:block text-right text-[10px] uppercase tracking-[0.25em] select-none">
+                    {% if user.id is None %}
+                        <div class="text-muted-foreground">Welcome</div>
+                        <a href="{% url 'login' %}" class="text-foreground hover:text-primary transition-colors font-medium">
+                            Sign in <span class="text-muted-foreground/60">| Register</span>
+                        </a>
+                    {% else %}
+                        <div class="text-muted-foreground">Welcome, {{ user.first_name }}</div>
+                        <div class="flex gap-2 justify-end">
+                            <a href="{% url 'dashboard' %}" class="text-foreground hover:text-primary transition-colors font-medium">Dashboard</a>
+                            <span class="text-muted-foreground/60">|</span>
+                            <a href="{% url 'logout' %}" class="text-foreground hover:text-primary transition-colors font-medium">Sign out</a>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <a href="#" class="p-2 text-foreground hover:text-primary transition-colors" aria-label="Wishlist">
+                    <i class="fa-regular fa-heart text-xl"></i>
+                </a>
+
+                <!-- Shopping Bag Cart Badge -->
+                <a href="{% url 'cart' %}" class="relative p-2 text-foreground hover:text-primary transition-colors" aria-label="Cart">
+                    <i class="fa-solid fa-bag-shopping text-xl"></i>
+                    <span class="absolute -top-0.5 -right-0.5 bg-accent text-foreground text-[9px] w-4.5 h-4.5 rounded-full flex items-center justify-center font-bold px-1 border border-background">
+                        {{ cart_count }}
+                    </span>
+                </a>
+                
+                <!-- Mobile Menu Hamburger -->
+                <button id="open-mobile-menu" class="md:hidden text-foreground hover:text-primary transition-colors focus:outline-none ml-1">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Category subnav -->
+        <nav class="max-w-7xl mx-auto px-6 sm:px-10 pb-4 flex gap-8 text-[11px] uppercase tracking-[0.3em] text-muted-foreground overflow-x-auto select-none">
+            <a href="{% url 'store' %}" class="whitespace-nowrap hover:text-primary transition-colors">
+                New In
+            </a>
+            {% for cat in links %}
+            <a href="{{ cat.get_url }}" class="whitespace-nowrap {% if single_product.category.slug == cat.slug %}text-foreground font-medium{% endif %} hover:text-primary transition-colors">
+                {{ cat.category_name }}
+            </a>
+            {% endfor %}
+        </nav>
+    </header>
+
+    <!-- Mobile Search Bar (Hidden by default) -->
+    <div id="mobile-search-bar" class="hidden md:hidden border-b border-border/60 bg-white px-6 py-3 fixed top-[72px] sm:top-[88px] left-0 w-full z-50 shadow-md">
+        <form action="{% url 'search' %}" method="GET" class="flex items-center border border-border/80 bg-background focus-within:border-foreground transition-colors shadow-sm w-full">
+            <input id="mobile-search-input" type="text" name="keyword" placeholder="Search products..." class="flex-1 bg-transparent px-4 py-2 text-sm focus:outline-none placeholder:text-muted-foreground/45 text-foreground w-full">
+            <button type="submit" class="px-4 py-2 text-muted-foreground hover:text-primary transition-colors">
+                <i class="fa-solid fa-magnifying-glass text-sm"></i>
+            </button>
+        </form>
+    </div>
+
+    <!-- Main Detail Container -->
+    <main class="flex-1 max-w-7xl mx-auto w-full px-6 sm:px-10 py-12">
+        
+        <!-- Breadcrumbs -->
+        <nav class="flex items-center flex-wrap gap-2 text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-muted-foreground/80 mb-10 select-none font-sans">
+            <a href="/" class="hover:text-foreground transition-colors">Home</a>
+            <span class="text-muted-foreground/35 mx-1 font-sans">&gt;</span>
+            <a href="{% url 'store' %}" class="hover:text-foreground transition-colors">Catalog</a>
+            <span class="text-muted-foreground/35 mx-1 font-sans">&gt;</span>
+            <a href="{{ single_product.category.get_url }}" class="hover:text-foreground transition-colors">{{ single_product.category.category_name|upper }}</a>
+            <span class="text-muted-foreground/35 mx-1 font-sans">&gt;</span>
+            <span class="text-foreground font-semibold truncate">{{ single_product.product_name|upper }}</span>
+        </nav>
+
+        <!-- Product Presentation Split Layout (Image gallery left, details right) -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-16 items-start mb-16">
+            
+            <!-- Left Column: Compact Square Product Display -->
+            <div class="col-span-12 md:col-span-6 flex flex-col items-center">
+                <!-- Square presentation container (aspect-square with strict width cap of 420px to prevent stretching) -->
+                <div class="relative aspect-square max-w-[420px] max-h-[420px] w-full bg-white border border-border/60 overflow-hidden shadow-sm">
+                    <div class="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/10 pointer-events-none"></div>
+                    <!-- Wishlist button -->
+                    <button class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/80 backdrop-blur flex items-center justify-center transition-colors border border-border/30 z-20 shadow-xs btn-toggle-wishlist {% if single_product.id in wishlist_product_ids %}text-primary{% else %}text-muted-foreground hover:text-primary{% endif %}" data-product-id="{{ single_product.id }}" aria-label="Toggle Wishlist">
+                        <i class="fa-heart text-base {% if single_product.id in wishlist_product_ids %}fa-solid text-rose-500{% else %}fa-regular{% endif %}"></i>
+                    </button>
+                    <img 
+                        id="main-product-image"
+                        src="{{ single_product.images.url }}" 
+                        alt="{{ single_product.product_name }}"
+                        class="w-full h-full object-cover transition-opacity duration-200"
+                    />
+                </div>
+
+                <!-- Gallery Thumbnails scrolling bar -->
+                {% if product_gallery %}
+                <div class="flex items-center gap-3 overflow-x-auto mt-4 pb-2 max-w-[420px] w-full justify-start select-none">
+                    <!-- Base main thumbnail -->
+                    <button 
+                        onclick="changeMainImage('{{ single_product.images.url }}')"
+                        class="w-16 h-16 aspect-square border border-foreground bg-white p-1 transition-colors focus:outline-none flex-shrink-0 thumbnail-btn active-thumbnail"
+                    >
+                        <img src="{{ single_product.images.url }}" class="w-full h-full object-cover" alt="Main image">
+                    </button>
+                    <!-- Gallery slides -->
+                    {% for item in product_gallery %}
+                    <button 
+                        onclick="changeMainImage('{{ item.image.url }}')"
+                        class="w-16 h-16 aspect-square border border-border/80 bg-white hover:border-foreground p-1 transition-colors focus:outline-none flex-shrink-0 thumbnail-btn"
+                    >
+                        <img src="{{ item.image.url }}" class="w-full h-full object-cover" alt="Gallery image">
+                    </button>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Right Column: Product Details Panel -->
+            <div class="col-span-12 md:col-span-6 space-y-6">
+                
+                <div class="space-y-2">
+                    <!-- Brand Category tag -->
+                    <span class="text-[10px] uppercase tracking-[0.35em] text-muted-foreground font-semibold">
+                        {{ single_product.category.category_name }}
+                    </span>
+                    <!-- Product Title -->
+                    <h1 class="font-serif text-3.5xl sm:text-4xl leading-tight text-foreground tracking-tight">
+                        {{ single_product.product_name }}
+                    </h1>
+                    
+                    <!-- Star Rating overview widget -->
+                    <div class="flex items-center gap-3 pt-1 select-none">
+                        <span class="text-[10px] text-accent tracking-widest flex gap-0.5">
+                            <i class="{% if display_rating >= 1 %}fa-solid fa-star{% elif display_rating >= 0.5 %}fa-solid fa-star-half-stroke{% else %}fa-regular fa-star{% endif %} text-amber-500"></i>
+                            <i class="{% if display_rating >= 2 %}fa-solid fa-star{% elif display_rating >= 1.5 %}fa-solid fa-star-half-stroke{% else %}fa-regular fa-star{% endif %} text-amber-500"></i>
+                            <i class="{% if display_rating >= 3 %}fa-solid fa-star{% elif display_rating >= 2.5 %}fa-solid fa-star-half-stroke{% else %}fa-regular fa-star{% endif %} text-amber-500"></i>
+                            <i class="{% if display_rating >= 4 %}fa-solid fa-star{% elif display_rating >= 3.5 %}fa-solid fa-star-half-stroke{% else %}fa-regular fa-star{% endif %} text-amber-500"></i>
+                            <i class="{% if display_rating >= 5 %}fa-solid fa-star{% elif display_rating >= 4.5 %}fa-solid fa-star-half-stroke{% else %}fa-regular fa-star{% endif %} text-amber-500"></i>
+                        </span>
+                        <span class="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
+                            {{ single_product.countReview }} reviews
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Price tag -->
+                <div class="py-2 select-none">
+                    <span class="font-serif text-3xl font-medium text-primary">₹{{ single_product.price }}</span>
+                </div>
+
+                <!-- Product Description -->
+                <div class="text-xs leading-relaxed text-muted-foreground font-sans border-t border-border/40 pt-4">
+                    <p>{{ single_product.description }}</p>
+                </div>
+
+                <!-- Choose options form -->
+                <form action="{% url 'add_cart' single_product.id %}" method="POST" class="space-y-5 pt-1">
+                    {% csrf_token %}
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Colors -->
+                        {% if single_product.variation_set.colors %}
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[0.25em] text-muted-foreground font-semibold mb-2">Choose Color</label>
+                            <div class="relative">
+                                <select 
+                                    name="color" 
+                                    class="w-full bg-white border border-border/80 px-4 py-3 text-xs uppercase tracking-wider text-foreground focus:border-foreground focus:outline-none transition-colors rounded-none appearance-none cursor-pointer"
+                                    required
+                                >
+                                    <option value="" disabled selected>Select Color</option>
+                                    {% for i in single_product.variation_set.colors %}
+                                        <option value="{{ i.variation_value | lower }}">{{ i.variation_value | capfirst }}</option>
+                                    {% endfor %}
+                                </select>
+                                <span class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-muted-foreground text-[10px]">
+                                    <i class="fa-solid fa-chevron-down"></i>
+                                </span>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Sizes -->
+                        {% if single_product.variation_set.sizes %}
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[0.25em] text-muted-foreground font-semibold mb-2">Select Size</label>
+                            <div class="relative">
+                                <select 
+                                    name="size" 
+                                    class="w-full bg-white border border-border/80 px-4 py-3 text-xs uppercase tracking-wider text-foreground focus:border-foreground focus:outline-none transition-colors rounded-none appearance-none cursor-pointer"
+                                    required
+                                >
+                                    <option value="" disabled selected>Select Size</option>
+                                    {% for i in single_product.variation_set.sizes %}
+                                        <option value="{{ i.variation_value | lower }}">{{ i.variation_value | capfirst }}</option>
+                                    {% endfor %}
+                                </select>
+                                <span class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-muted-foreground text-[10px]">
+                                    <i class="fa-solid fa-chevron-down"></i>
+                                </span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Checkout triggers -->
+                    <div class="pt-2 select-none">
+                        {% if single_product.stock <= 0 %}
+                            <div class="w-full border border-rose-400/40 bg-rose-50 text-rose-600 text-center py-4 text-[11px] uppercase tracking-[0.3em] font-semibold">
+                                Sold Out
+                            </div>
+                        {% else %}
+                            <button 
+                                type="submit" 
+                                class="w-full bg-primary text-white py-4 text-[11px] uppercase tracking-[0.3em] hover:bg-foreground transition-colors duration-300 shadow-sm flex items-center justify-center gap-3"
+                                style="padding-top: 1.125rem; padding-bottom: 1.125rem;"
+                            >
+                                Add to Bag <i class="fa-solid fa-bag-shopping text-xs"></i>
+                            </button>
+                        {% endif %}
+                    </div>
+                </form>
+
+            </div>
+        </div>
+
+        <!-- Section: You May Also Like (Same category related items display) -->
+        {% if related_products %}
+        <section class="mb-16 border-t border-border/50 pt-12 select-none">
+            <div class="mb-8 flex items-baseline justify-between select-none">
+                <div>
+                    <p class="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Related Drops</p>
+                    <h2 class="font-serif text-3xl sm:text-4xl tracking-tight text-foreground mt-1">
+                        You May <em class="text-primary font-serif italic">Also Like</em>
+                    </h2>
+                </div>
+                <a href="{{ single_product.category.get_url }}" class="text-[10px] uppercase tracking-[0.2em] font-medium text-foreground hover:text-primary transition-colors">
+                    Explore All <i class="fa-solid fa-chevron-right text-[8px] ml-1"></i>
+                </a>
+            </div>
+
+            <!-- Related 4 items display grid -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
+                {% for product in related_products %}
+                <article class="group cursor-pointer">
+                    <!-- Thumbnail wrapper -->
+                    <a href="{{ product.get_url }}" class="block relative aspect-[4/5] bg-secondary/40 border border-border/60 overflow-hidden mb-4 shadow-sm">
+                        <div class="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/15 group-hover:from-primary/10 group-hover:to-accent/25 transition-colors z-10"></div>
+                        <!-- Wishlist button -->
+                        <button class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center transition-colors border border-border/30 z-20 shadow-xs btn-toggle-wishlist {% if product.id in wishlist_product_ids %}text-primary{% else %}text-muted-foreground hover:text-primary{% endif %}" data-product-id="{{ product.id }}" aria-label="Toggle Wishlist">
+                            <i class="fa-heart text-xs {% if product.id in wishlist_product_ids %}fa-solid text-rose-500{% else %}fa-regular{% endif %}"></i>
+                        </button>
+                        <img 
+                            src="{{ product.images.url }}" 
+                            alt="{{ product.product_name }}"
+                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                    </a>
+                    
+                    <!-- Meta info description -->
+                    <div class="text-center sm:text-left">
+                        <p class="text-[9px] uppercase tracking-[0.2em] text-muted-foreground/80 font-medium">
+                            {{ product.category.category_name }}
+                        </p>
+                        <h3 class="font-serif text-lg tracking-tight text-foreground group-hover:text-primary transition-colors mt-1 truncate">
+                            <a href="{{ product.get_url }}">{{ product.product_name }}</a>
+                        </h3>
+                        <span class="block text-xs font-semibold text-foreground/90 mt-1 font-sans">
+                            ₹{{ product.price }}
+                        </span>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Section looking in a Card Type: Customer Reviews (Airy, compact card frame below) -->
+        <section class="bg-white border border-border/70 p-6 sm:p-10 shadow-sm rounded-none">
+            <div class="max-w-4xl mx-auto space-y-10">
+                
+                <!-- Review overview stats header -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-border/60 pb-6 gap-4 select-none">
+                    <div>
+                        <h2 class="font-serif text-3xl uppercase tracking-wider text-foreground">Customer Reviews</h2>
+                        <div class="flex items-center gap-3 mt-1.5">
+                            <span class="text-xs text-accent tracking-widest flex gap-0.5" aria-label="Rating: {{ display_rating }} stars">
+                                <i class="{% if display_rating >= 1 %}fa-solid fa-star{% elif display_rating >= 0.5 %}fa-solid fa-star-half-stroke{% else %}fa-regular fa-star{% endif %} text-amber-500"></i>
+                                <i class="{% if display_rating >= 2 %}fa-solid fa-star{% elif display_rating >= 1.5 %}fa-solid fa-star-half-stroke{% else %}fa-regular fa-star{% endif %} text-amber-500"></i>
+                                <i class="{% if display_rating >= 3 %}fa-solid fa-star{% elif display_rating >= 2.5 %}fa-solid fa-star-half-stroke{% else %}fa-regular fa-star{% endif %} text-amber-500"></i>
+                                <i class="{% if display_rating >= 4 %}fa-solid fa-star{% elif display_rating >= 3.5 %}fa-solid fa-star-half-stroke{% else %}fa-regular fa-star{% endif %} text-amber-500"></i>
+                                <i class="{% if display_rating >= 5 %}fa-solid fa-star{% elif display_rating >= 4.5 %}fa-solid fa-star-half-stroke{% else %}fa-regular fa-star{% endif %} text-amber-500"></i>
+                            </span>
+                            <span class="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
+                                {{ single_product.countReview }} reviews
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Toggle write button -->
+                    <button 
+                        id="toggle-review-btn"
+                        class="border border-border/80 bg-white hover:border-foreground text-foreground px-5 py-2.5 text-[10px] uppercase tracking-[0.25em] font-semibold transition-all duration-300 shadow-sm whitespace-nowrap"
+                    >
+                        Write a Review
+                    </button>
+                </div>
+
+                <!-- Collapsible review input forms -->
+                <div id="collapsible-review-form" class="hidden duration-500 ease-in-out">
+                    <div class="bg-background border border-border/60 p-6 sm:p-8 shadow-sm">
+                        <form action="{% url 'submit_review' single_product.id %}" method="POST" class="space-y-6">
+                            {% csrf_token %}
+                            
+                            <div class="select-none">
+                                <h3 class="font-serif text-lg tracking-wider uppercase text-foreground">Post a Review</h3>
+                                <p class="text-[9px] uppercase tracking-wider text-muted-foreground mt-0.5">Let other shoppers know what you think of this product</p>
+                            </div>
+                            
+                            <!-- Star interactive radios -->
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-[0.25em] text-muted-foreground font-semibold mb-2">Your Rating</label>
+                                <div class="rate-container flex items-center">
+                                    <div class="rate">
+                                        <input type="radio" name="rating" id="rating5" value="5" required /><label for="rating5" title="5 stars"></label>
+                                        <input type="radio" name="rating" id="rating4" value="4" /><label for="rating4" title="4 stars"></label>
+                                        <input type="radio" name="rating" id="rating3" value="3" /><label for="rating3" title="3 stars"></label>
+                                        <input type="radio" name="rating" id="rating2" value="2" /><label for="rating2" title="2 stars"></label>
+                                        <input type="radio" name="rating" id="rating1" value="1" /><label for="rating1" title="1 star"></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Subject -->
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-[0.25em] text-muted-foreground font-semibold mb-2">Review Title</label>
+                                <input 
+                                    type="text" 
+                                    class="w-full bg-white border border-border/80 px-4 py-3 text-xs text-foreground focus:border-foreground focus:outline-none transition-colors rounded-none placeholder:text-muted-foreground/35"
+                                    name="subject"
+                                    placeholder="Example: Exceptional quality fit..."
+                                    required
+                                />
+                            </div>
+
+                            <!-- Details -->
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-[0.25em] text-muted-foreground font-semibold mb-2">Review Details</label>
+                                <textarea 
+                                    name="review" 
+                                    rows="5" 
+                                    class="w-full bg-white border border-border/80 px-4 py-3 text-xs text-foreground focus:border-foreground focus:outline-none transition-colors rounded-none placeholder:text-muted-foreground/35 resize-none"
+                                    placeholder="Share your thoughts on the design details, texture feel, and fit sizing..."
+                                    required
+                                ></textarea>
+                            </div>
+
+                            <!-- Post validations -->
+                            <div class="pt-2 select-none">
+                                {% if user.is_authenticated %}
+                                    {% if orderproduct %}
+                                        <button 
+                                            type="submit" 
+                                            class="w-full bg-primary text-white py-3.5 text-[10px] uppercase tracking-[0.3em] hover:bg-foreground transition-colors duration-300 shadow-sm"
+                                        >
+                                            Submit Review
+                                        </button>
+                                    {% else %}
+                                        <div class="border border-amber-300/30 bg-amber-50/50 p-4 text-center">
+                                            <p class="text-[10px] uppercase tracking-[0.2em] text-amber-700 font-semibold leading-normal">
+                                                You must purchase this product to post a review.
+                                            </p>
+                                        </div>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="border border-border/80 bg-background/50 p-4 text-center">
+                                        <p class="text-[10px] uppercase tracking-[0.2em] text-muted-foreground leading-normal font-semibold">
+                                            You must be logged in to review. 
+                                            <a href="{% url 'login' %}" class="text-foreground hover:text-primary transition-colors underline ml-1">Login now</a>
+                                        </p>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            {% include 'includes/alerts.html' %}
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Reviews list block -->
+                <div class="space-y-6 pt-2">
+                    {% if reviews %}
+                        <div class="divide-y divide-border/60">
+                            {% for review in reviews %}
+                            <article class="py-6 first:pt-0 last:pb-0 select-none">
+                                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3">
+                                    <div>
+                                        <h4 class="text-xs font-semibold text-foreground uppercase tracking-wider">{{ review.user.full_name }}</h4>
+                                        <span class="text-[9px] uppercase tracking-wider text-muted-foreground/70 font-medium block mt-0.5">
+                                            {{ review.updated_at|date:"M. d, Y, g:i a" }}
+                                        </span>
+                                    </div>
+                                    
+                                    <!-- Stars list -->
+                                    <div class="text-[11px] text-accent tracking-widest flex gap-0.5">
+                                        <i class="{% if review.rating >= 1 %}fa-solid fa-star{% elif review.rating >= 0.5 %}fa-solid fa-star-half-stroke{% else %}fa-regular fa-star{% endif %} text-amber-500"></i>
+                                        <i class="{% if review.rating >= 2 %}fa-solid fa-star{% elif review.rating >= 1.5 %}fa-solid fa-star-half-stroke{% else %}fa-regular fa-star{% endif %} text-amber-500"></i>
+                                        <i class="{% if review.rating >= 3 %}fa-solid fa-star{% elif review.rating >= 2.5 %}fa-solid fa-star-half-stroke{% else %}fa-regular fa-star{% endif %} text-amber-500"></i>
+                                        <i class="{% if review.rating >= 4 %}fa-solid fa-star{% elif review.rating >= 3.5 %}fa-solid fa-star-half-stroke{% else %}fa-regular fa-star{% endif %} text-amber-500"></i>
+                                        <i class="{% if review.rating >= 5 %}fa-solid fa-star{% elif review.rating >= 4.5 %}fa-solid fa-star-half-stroke{% else %}fa-regular fa-star{% endif %} text-amber-500"></i>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-1">
+                                    <h5 class="text-xs font-bold uppercase tracking-wider text-foreground">{{ review.subject }}</h5>
+                                    <p class="text-xs leading-relaxed text-muted-foreground font-sans">
+                                        {{ review.review }}
+                                    </p>
+                                </div>
+                            </article>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <!-- Empty reviews -->
+                        <div class="py-12 border border-dashed border-border/80 text-center select-none bg-background/50">
+                            <i class="fa-regular fa-comments text-3xl text-muted-foreground/30 mb-2 block"></i>
+                            <h4 class="font-serif text-lg text-foreground uppercase tracking-wider">No reviews yet</h4>
+                            <p class="text-xs text-muted-foreground mt-1 max-w-xs mx-auto font-sans">Be the first to share your thoughts on this design once you've purchased it.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Editorial Footer -->
+    <footer class="border-t border-border/60 bg-card/45 mt-auto select-none">
+        <div class="max-w-7xl mx-auto px-6 sm:px-10 py-10 flex flex-col sm:flex-row justify-between gap-6 text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-muted-foreground items-center">
+            
+            <div class="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
+                <a href="/" class="font-serif leading-none text-base tracking-tight select-none">
+                    <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+                </a>
+                <span class="text-muted-foreground/60 font-sans">— Your premier fashion & lifestyle store</span>
+            </div>
+            
+            <div class="flex gap-6 font-medium">
+                <a href="{% url 'help' %}" class="hover:text-foreground transition-colors">Help</a>
+                <a href="{% url 'shipping' %}" class="hover:text-foreground transition-colors">Shipping</a>
+                <a href="{% url 'returns' %}" class="hover:text-foreground transition-colors">Returns</a>
+                <a href="{% url 'privacy' %}" class="hover:text-foreground transition-colors">Privacy</a>
+                <a href="{% url 'terms' %}" class="hover:text-foreground transition-colors">Terms</a>
+            </div>
+            
+        </div>
+    </footer>
+
+    </footer>
+
+    <!-- Mobile Navigation Menu Drawer -->
+    <div id="mobile-menu-wrapper" class="fixed inset-0 z-[100] overflow-hidden hidden" aria-modal="true" role="dialog">
+        <!-- Backdrop -->
+        <div id="mobile-menu-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-xs transition-opacity duration-300 opacity-0"></div>
+        
+        <!-- Drawer Panel -->
+        <div id="mobile-menu-panel" class="absolute top-0 right-0 h-full w-[80%] max-w-[320px] bg-background shadow-2xl border-l border-border/40 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col z-[101]">
+            
+            <!-- Drawer Header -->
+            <div class="flex items-center justify-between px-6 py-5 border-b border-border/60 select-none">
+                <span class="font-serif text-lg tracking-wider uppercase text-foreground">Menu</span>
+                <button id="close-mobile-menu" class="text-muted-foreground hover:text-foreground transition-colors p-1" aria-label="Close menu">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <!-- Drawer Scrollable Content -->
+            <div class="flex-1 overflow-y-auto py-6 select-none flex flex-col gap-6">
+                
+                <!-- Links -->
+                <nav class="flex flex-col px-6 gap-4 text-[11px] uppercase tracking-[0.25em] font-semibold text-muted-foreground">
+                    <a href="{% url 'store' %}" class="hover:text-primary transition-colors py-2">Store</a>
+                    {% for cat in links %}
+                        <a href="{{ cat.get_url }}" class="hover:text-primary transition-colors py-2">{{ cat.category_name }}</a>
+                    {% endfor %}
+                </nav>
+                
+                <hr class="border-border/60 mx-6">
+                
+                <!-- Auth / User -->
+                <div class="px-6 flex flex-col gap-4 text-[11px] uppercase tracking-[0.25em] font-semibold">
+                    {% if user.id is None %}
+                        <a href="{% url 'login' %}" class="text-foreground hover:text-primary transition-colors py-2">Sign in</a>
+                        <a href="{% url 'register' %}" class="text-foreground hover:text-primary transition-colors py-2">Register</a>
+                    {% else %}
+                        <div class="text-muted-foreground/60 mb-2 normal-case tracking-normal text-xs">Signed in as <span class="font-bold text-foreground">{{ user.first_name }}</span></div>
+                        <a href="{% url 'dashboard' %}" class="text-foreground hover:text-primary transition-colors py-2">Dashboard</a>
+                        <a href="{% url 'logout' %}" class="text-rose-600 hover:text-rose-800 transition-colors py-2">Sign out</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Native Lightweight JS to swap main image and toggle collapsible forms -->
+    <script>
+        // Image swap handler
+        function changeMainImage(imgSrc) {
+            const mainImg = document.getElementById('main-product-image');
+            if (mainImg) {
+                mainImg.style.opacity = '0.3';
+                setTimeout(() => {
+                    mainImg.src = imgSrc;
+                    mainImg.style.opacity = '1';
+                }, 120);
+            }
+            
+            // Manage thumbnail border selection highlight
+            const buttons = document.querySelectorAll('.thumbnail-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('border-foreground');
+                btn.classList.add('border-border/80');
+            });
+            
+            // Highlight the clicked one
+            const clickedBtn = event.currentTarget;
+            if (clickedBtn) {
+                clickedBtn.classList.remove('border-border/80');
+                clickedBtn.classList.add('border-foreground');
+            }
+        }
+
+        // Toggle review form handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.getElementById('toggle-review-btn');
+            const reviewForm = document.getElementById('collapsible-review-form');
+            
+            if (toggleBtn && reviewForm) {
+                toggleBtn.addEventListener('click', function() {
+                    if (reviewForm.classList.contains('hidden')) {
+                        reviewForm.classList.remove('hidden');
+                        toggleBtn.textContent = 'Cancel Review';
+                        toggleBtn.classList.add('border-primary', 'text-primary');
+                        setTimeout(() => {
+                            reviewForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }, 50);
+                    } else {
+                        reviewForm.classList.add('hidden');
+                        toggleBtn.textContent = 'Write a Review';
+                        toggleBtn.classList.remove('border-primary', 'text-primary');
+                    }
+                });
+            }
+            
+            // Mobile Menu Drawer Logic
+            const menuWrapper = document.getElementById('mobile-menu-wrapper');
+            const menuBackdrop = document.getElementById('mobile-menu-backdrop');
+            const menuPanel = document.getElementById('mobile-menu-panel');
+            
+            const openMenuBtn = document.getElementById('open-mobile-menu');
+            const closeMenuBtn = document.getElementById('close-mobile-menu');
+            
+            function openMenu() {
+                if(!menuWrapper) return;
+                menuWrapper.classList.remove('hidden');
+                setTimeout(() => {
+                    menuBackdrop.classList.remove('opacity-0');
+                    menuBackdrop.classList.add('opacity-100');
+                    menuPanel.classList.remove('translate-x-full');
+                    menuPanel.classList.add('translate-x-0');
+                }, 10);
+            }
+            
+            function closeMenu() {
+                if(!menuWrapper) return;
+                menuBackdrop.classList.remove('opacity-100');
+                menuBackdrop.classList.add('opacity-0');
+                menuPanel.classList.remove('translate-x-0');
+                menuPanel.classList.add('translate-x-full');
+                
+                setTimeout(() => {
+                    menuWrapper.classList.add('hidden');
+                }, 300);
+            }
+            
+            if(openMenuBtn) openMenuBtn.addEventListener('click', openMenu);
+            if(closeMenuBtn) closeMenuBtn.addEventListener('click', closeMenu);
+            if(menuBackdrop) menuBackdrop.addEventListener('click', closeMenu);
+        });
+    </script>
+
+<script>
+        $(document).ready(function() {
+            $('.btn-toggle-wishlist').on('click', function(e) {
+                e.preventDefault();
+                var btn = $(this);
+                var icon = btn.find('i');
+                var productId = btn.data('product-id');
+                var url = "/store/wishlist/toggle/" + productId + "/";
+
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    success: function(response) {
+                        if (response.status === 'added') {
+                            btn.removeClass('text-muted-foreground hover:text-primary').addClass('text-primary');
+                            icon.removeClass('fa-regular').addClass('fa-solid text-rose-500');
+                        } else if (response.status === 'removed') {
+                            btn.removeClass('text-primary').addClass('text-muted-foreground hover:text-primary');
+                            icon.removeClass('fa-solid text-rose-500').addClass('fa-regular');
+                        }
+                    },
+                    error: function(xhr) {
+                        if(xhr.status === 401 || xhr.status === 403) {
+                            window.location.href = "{% url 'login' %}";
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

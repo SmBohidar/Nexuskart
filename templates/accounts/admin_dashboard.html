@@ -1,0 +1,836 @@
+{% load static %}
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Admin Dashboard · Nexuskart</title>
+    
+    <link href="{% static 'image/nexuskartlogo-64x64.webp' %}" rel="shortcut-icon" sizes="64x64" type="image/webp">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Work+Sans:wght@100..900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: 'oklch(0.97 0.012 85)',
+                        foreground: 'oklch(0.18 0.025 160)',
+                        card: 'oklch(0.99 0.008 85)',
+                        primary: 'oklch(0.28 0.055 160)',
+                        secondary: 'oklch(0.93 0.015 85)',
+                        accent: 'oklch(0.72 0.115 80)',
+                        'muted-foreground': 'oklch(0.45 0.02 150)',
+                        border: 'oklch(0.85 0.012 85)',
+                        input: 'oklch(0.88 0.012 85)',
+                        destructive: 'oklch(0.52 0.18 28)',
+                        'destructive-foreground': 'oklch(0.97 0.012 85)'
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+                        sans: ['"Work Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                        mono: ['Courier New', 'Courier', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background-color: oklch(0.97 0.012 85);
+            color: oklch(0.18 0.025 160);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Ambient glowing circles */
+        .ambient-glow {
+            position: absolute;
+            border-radius: 9999px;
+            filter: blur(120px);
+            opacity: 0.15;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Customize scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: oklch(0.85 0.012 85);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-background text-foreground flex flex-col relative overflow-x-hidden">
+
+    <!-- Ambient backdrop blobs -->
+    <div class="ambient-glow bg-primary w-[500px] h-[500px] -top-[200px] -left-[100px]"></div>
+    <div class="ambient-glow bg-accent w-[400px] h-[400px] bottom-[10%] right-[-100px]"></div>
+
+    <!-- AJAX Toast Notification Container -->
+    <div id="ajax-toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm"></div>
+
+    <!-- Django Static Messages System -->
+    {% if messages %}
+    <div class="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm">
+        {% for message in messages %}
+        <div class="bg-white border-l-4 {% if message.tags == 'error' %}border-destructive{% else %}border-primary{% endif %} px-5 py-4 shadow-lg flex items-start gap-4 transition-all duration-300 transform translate-x-0" role="alert">
+            <div class="text-xl">
+                {% if message.tags == 'error' %}
+                    <i class="fa-solid fa-circle-exclamation text-destructive"></i>
+                {% else %}
+                    <i class="fa-solid fa-circle-check text-primary"></i>
+                {% endif %}
+            </div>
+            <div class="flex-1">
+                <p class="text-xs uppercase tracking-widest text-muted-foreground">Notification</p>
+                <p class="text-sm font-semibold mt-0.5">{{ message }}</p>
+            </div>
+            <button onclick="this.parentElement.remove();" class="text-muted-foreground/60 hover:text-foreground text-sm leading-none">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Top Navigation Header -->
+    <header class="border-b border-border/60 bg-background/80 backdrop-blur-sm sticky top-0 z-30 select-none">
+        <div class="max-w-7xl mx-auto px-6 sm:px-10 py-5 flex items-center justify-between gap-6">
+            
+            <!-- Logo Wordmark -->
+            <a href="/" class="font-serif leading-none text-2xl sm:text-3xl tracking-tight select-none">
+                <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+            </a>
+
+            <!-- Subtext Indicator -->
+            <div class="hidden md:flex items-center gap-3">
+                <span class="inline-flex items-center gap-1.5 bg-foreground text-background px-3 py-1.5 text-[9px] uppercase tracking-[0.25em] font-bold">
+                    <i class="fa-solid fa-shield-halved text-[9px]"></i> Admin
+                </span>
+                <span class="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                    Control center
+                </span>
+            </div>
+
+            <!-- Spacer -->
+            <div class="flex-1"></div>
+
+            <!-- Header Action Controls -->
+            <div class="flex items-center gap-4">
+                
+                <!-- My Account Link -->
+                <a href="{% url 'dashboard' %}" class="hidden sm:inline-block text-[11px] uppercase tracking-[0.25em] text-muted-foreground hover:text-foreground font-semibold">
+                    My Account
+                </a>
+
+                <!-- Notifications Bell Popover -->
+                <div class="relative">
+                    <button id="bell-btn" class="relative inline-flex items-center justify-center w-10 h-10 border border-border bg-card hover:border-foreground hover:bg-secondary/20 transition-all duration-300" aria-label="Notifications">
+                        <i class="fa-regular fa-bell text-base"></i>
+                        {% if new_orders_pending.count > 0 or cancellation_requests.count > 0 %}
+                        <span class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center text-[9px] font-bold rounded-full bg-destructive text-white">
+                            {{ new_orders_pending.count|add:cancellation_requests.count }}
+                        </span>
+                        {% endif %}
+                    </button>
+
+                    <!-- Notifications Dropdown Menu -->
+                    <div id="bell-dropdown" class="hidden absolute right-0 mt-3 w-80 sm:w-96 bg-card border border-border shadow-xl z-50 transform origin-top-right transition-all duration-300">
+                        <div class="px-5 py-4 border-b border-border/60 flex items-center justify-between bg-secondary/15">
+                            <p class="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">Notifications</p>
+                            <span class="text-[9px] uppercase tracking-[0.25em] font-bold bg-primary text-white px-2 py-0.5">
+                                {{ new_orders_pending.count|add:cancellation_requests.count }} total
+                            </span>
+                        </div>
+                        <div class="max-h-[350px] overflow-y-auto divide-y divide-border/40" id="notification-list">
+                            {% if new_orders_pending.count == 0 and cancellation_requests.count == 0 %}
+                            <div class="px-5 py-10 text-center text-sm text-muted-foreground">
+                                <i class="fa-solid fa-circle-check text-2xl text-primary/30 mb-2 block"></i>
+                                You're all caught up. No notifications.
+                            </div>
+                            {% else %}
+                                {% for order in cancellation_requests %}
+                                <div class="px-5 py-4 bg-rose-50/50 hover:bg-rose-100/50 transition-colors" id="notif-order-{{ order.id }}">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="min-w-0">
+                                            <p class="text-[9px] uppercase font-bold text-rose-700 tracking-wider mb-1"><i class="fa-solid fa-exclamation-circle"></i> Cancellation Requested</p>
+                                            <p class="font-mono text-xs font-bold text-primary">#{{ order.order_number }}</p>
+                                            <p class="text-sm font-semibold text-foreground truncate mt-0.5">{{ order.full_name }}</p>
+                                            <p class="text-xs text-muted-foreground truncate mt-0.5">
+                                                {{ order.email }} · ₹{{ order.order_total }}
+                                            </p>
+                                        </div>
+                                        <div class="flex flex-col gap-1.5 shrink-0 select-none pt-4">
+                                            <button onclick="handleNotifAction('{{ order.id }}', 'Cancelled')" class="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-[9px] uppercase tracking-[0.2em] font-bold bg-destructive text-white hover:opacity-90 transition-opacity">
+                                                <i class="fa-solid fa-xmark text-[8px]"></i> Cancel Order
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+
+                                {% for order in new_orders_pending %}
+                                <div class="px-5 py-4 hover:bg-secondary/10 transition-colors" id="notif-order-{{ order.id }}">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="min-w-0">
+                                            <p class="text-[9px] uppercase font-bold text-emerald-700 tracking-wider mb-1"><i class="fa-solid fa-sparkles"></i> New Order</p>
+                                            <p class="font-mono text-xs font-bold text-primary">#{{ order.order_number }}</p>
+                                            <p class="text-sm font-semibold text-foreground truncate mt-0.5">{{ order.full_name }}</p>
+                                            <p class="text-xs text-muted-foreground truncate mt-0.5">
+                                                {{ order.email }} · ₹{{ order.order_total }}
+                                            </p>
+                                        </div>
+                                        <div class="flex flex-col gap-1.5 shrink-0 select-none pt-4">
+                                            <button onclick="handleNotifAction('{{ order.id }}', 'Accepted')" class="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-[9px] uppercase tracking-[0.2em] font-bold bg-primary text-white hover:opacity-90 transition-opacity">
+                                                <i class="fa-solid fa-check text-[8px]"></i> Accept
+                                            </button>
+                                            <button onclick="handleNotifAction('{{ order.id }}', 'Cancelled')" class="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-[9px] uppercase tracking-[0.2em] font-bold border border-destructive text-destructive hover:bg-destructive hover:text-white transition-all">
+                                                <i class="fa-solid fa-xmark text-[8px]"></i> Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sign out Button -->
+                <a href="{% url 'logout' %}" class="hidden sm:inline-flex items-center gap-2 border border-border bg-card px-4 py-2 text-[11px] uppercase tracking-[0.25em] hover:border-foreground hover:bg-secondary/20 transition-all font-semibold select-none">
+                    <i class="fa-solid fa-arrow-right-from-bracket text-[10px]"></i> Sign out
+                </a>
+
+                <!-- Mobile Back to Dashboard Button -->
+                <a href="{% url 'dashboard' %}" class="md:hidden text-foreground hover:text-primary transition-colors focus:outline-none ml-2" aria-label="Back to Dashboard">
+                    <i class="fa-solid fa-house text-xl"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Page Hero Banner Header -->
+    <section class="border-b border-border/60 relative z-10 select-none">
+        <div class="max-w-7xl mx-auto px-6 sm:px-10 py-12 grid md:grid-cols-[1.5fr_1fr] gap-10 items-end">
+            <div>
+                <p class="text-[11px] uppercase tracking-[0.35em] text-accent font-bold mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-line text-[10px]"></i> OPERATIONS DASHBOARD
+                </p>
+                <h1 class="font-serif text-5xl md:text-6xl tracking-tight leading-[1.05] text-foreground">
+                    Today, at a <em class="text-primary italic font-light font-serif">glance</em>.
+                </h1>
+                <p class="text-muted-foreground mt-4 max-w-md leading-relaxed text-sm sm:text-base">
+                    Review orders, move shipments forward, track inventory levels, and check top sellers.
+                </p>
+            </div>
+            
+            <div class="flex md:justify-end">
+                <div class="bg-card border border-border p-6 w-full md:w-auto shadow-sm select-none">
+                    <p class="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">PENDING ACTION</p>
+                    <p class="font-serif text-5xl mt-3 text-primary font-bold" id="hero-pending-count">{{ pending_orders }}</p>
+                    <p class="text-xs text-muted-foreground mt-2 leading-none">Orders awaiting Accept or Ship</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Metrics Stats Cards Row -->
+    <section class="max-w-7xl mx-auto px-6 sm:px-10 py-10 w-full grid sm:grid-cols-2 lg:grid-cols-4 gap-5 relative z-10 select-none">
+        
+        <!-- Revenue Card (Accented) -->
+        <div class="border border-foreground bg-foreground text-background p-6 shadow-sm flex flex-col justify-between group hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] uppercase tracking-[0.25em] text-background/70 font-bold">TOTAL REVENUE</span>
+                <i class="fa-solid fa-indian-rupee-sign text-background/70 text-sm"></i>
+            </div>
+            <p class="font-serif text-4xl font-bold mt-4">₹{{ total_revenue|floatformat:2 }}</p>
+        </div>
+
+        <!-- Total Orders Card -->
+        <div class="border border-border bg-card p-6 shadow-sm flex flex-col justify-between hover:border-foreground/50 transition-colors">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">TOTAL ORDERS</span>
+                <i class="fa-solid fa-box text-muted-foreground text-sm"></i>
+            </div>
+            <p class="font-serif text-4xl font-bold text-foreground mt-4">{{ total_orders }}</p>
+        </div>
+
+        <!-- Pending Orders Card -->
+        <div class="border border-border bg-card p-6 shadow-sm flex flex-col justify-between hover:border-foreground/50 transition-colors">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">PENDING ORDERS</span>
+                <i class="fa-solid fa-clock-rotate-left text-muted-foreground text-sm"></i>
+            </div>
+            <p class="font-serif text-4xl font-bold text-foreground mt-4" id="stat-pending-count">{{ pending_orders }}</p>
+        </div>
+
+        <!-- Customers Card -->
+        <div class="border border-border bg-card p-6 shadow-sm flex flex-col justify-between hover:border-foreground/50 transition-colors">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">CUSTOMERS</span>
+                <i class="fa-solid fa-users text-muted-foreground text-sm"></i>
+            </div>
+            <p class="font-serif text-4xl font-bold text-foreground mt-4">{{ total_customers }}</p>
+        </div>
+
+    </section>
+
+    <!-- Recent Orders Table Section -->
+    <section class="max-w-7xl mx-auto px-6 sm:px-10 pb-10 w-full relative z-10">
+        
+        <!-- Section Header, Search, Filter Form -->
+        <form method="GET" action="." class="flex flex-wrap items-end justify-between gap-5 mb-6">
+            <div>
+                <p class="text-[10px] uppercase tracking-[0.3em] text-accent font-bold">SECTION 01</p>
+                <h2 class="font-serif text-3xl text-foreground font-bold mt-1">Recent orders</h2>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                <!-- Search Box -->
+                <div class="flex items-center border border-border bg-card focus-within:border-foreground transition-colors w-full sm:w-72 shadow-xs">
+                    <i class="fa-solid fa-magnifying-glass text-xs ml-4 text-muted-foreground"></i>
+                    <input
+                        type="text"
+                        name="q"
+                        value="{{ query }}"
+                        placeholder="Search order, customer…"
+                        class="bg-transparent px-3 py-2.5 text-sm focus:outline-none text-foreground placeholder:text-muted-foreground/50 w-full"
+                    />
+                </div>
+
+                <!-- Status Select Dropdown Filter -->
+                <select
+                    name="status"
+                    onchange="this.form.submit();"
+                    class="border border-border bg-card px-4 py-2.5 text-[11px] uppercase tracking-[0.2em] font-bold outline-none cursor-pointer hover:border-foreground transition-colors shadow-xs w-full sm:w-auto"
+                >
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All statuses</option>
+                    <option value="new" {% if status_filter == 'new' %}selected{% endif %}>New</option>
+                    {% for opt in status_options %}
+                    <option value="{{ opt|lower }}" {% if status_filter == opt|lower %}selected{% endif %}>{{ opt }}</option>
+                    {% endfor %}
+                    <option value="cancellation_requested" {% if status_filter == 'cancellation_requested' %}selected{% endif %}>Cancellation Requested</option>
+                </select>
+
+                <!-- Reset Button -->
+                {% if query or status_filter != 'all' %}
+                <a href="." class="border border-border/80 bg-white text-muted-foreground hover:text-foreground hover:border-foreground px-4 py-2.5 text-[11px] uppercase tracking-[0.2em] font-bold text-center shrink-0 shadow-xs">
+                    Clear
+                </a>
+                {% endif %}
+            </div>
+        </form>
+
+        <!-- Orders Table Grid -->
+        <div class="border border-border bg-card overflow-hidden shadow-xs">
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse text-left text-sm min-w-[900px]">
+                    <thead>
+                        <tr class="bg-secondary/15 text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold border-b border-border/60">
+                            <th class="px-6 py-4">Order</th>
+                            <th class="px-6 py-4">Customer</th>
+                            <th class="px-6 py-4">Primary Item</th>
+                            <th class="px-6 py-4 text-center">Qty</th>
+                            <th class="px-6 py-4 text-right">Total</th>
+                            <th class="px-6 py-4">Status Action</th>
+                            <th class="px-6 py-4 text-center">Detail</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border/40" id="orders-table-body">
+                        {% if recent_orders.count == 0 %}
+                        <tr>
+                            <td colspan="7" class="px-6 py-12 text-center text-sm text-muted-foreground">
+                                <i class="fa-solid fa-magnifying-glass text-3xl text-muted-foreground/35 mb-2 block"></i>
+                                No recent orders found matching the filter criteria.
+                            </td>
+                        </tr>
+                        {% else %}
+                            {% for order in recent_orders %}
+                            <tr class="{% if order.cancellation_requested %}bg-rose-50/50 hover:bg-rose-100/50{% else %}hover:bg-secondary/20{% endif %} transition-colors text-foreground" id="row-order-{{ order.id }}">
+                                
+                                <!-- Order Number -->
+                                <td class="px-6 py-4 font-mono text-xs font-bold text-primary select-all">
+                                    #{{ order.order_number }}
+                                    {% if order.cancellation_requested %}
+                                    <i class="fa-solid fa-exclamation-circle text-rose-600 ml-1" title="Cancellation Requested"></i>
+                                    {% endif %}
+                                </td>
+
+                                <!-- Customer Details -->
+                                <td class="px-6 py-4">
+                                    <div class="font-semibold text-foreground">{{ order.full_name }}</div>
+                                    <div class="text-xs text-muted-foreground select-all mt-0.5">{{ order.email }}</div>
+                                </td>
+
+                                <!-- Item Category / Name -->
+                                <td class="px-6 py-4">
+                                    <div class="truncate max-w-[200px] font-medium text-foreground">{{ order.primary_product_name }}</div>
+                                    <div class="text-xs text-muted-foreground mt-0.5">{{ order.created_at|date:"M d, Y" }}</div>
+                                </td>
+
+                                <!-- Quantity -->
+                                <td class="px-6 py-4 text-center font-mono">
+                                    {{ order.primary_product_qty }}
+                                </td>
+
+                                <!-- Order Total -->
+                                <td class="px-6 py-4 text-right font-mono font-semibold text-foreground">
+                                    ₹{{ order.order_total }}
+                                </td>
+
+                                <!-- Status Actions Block -->
+                                <td class="px-6 py-4" id="status-cell-{{ order.id }}">
+                                    {% if order.status == 'New' %}
+                                        <!-- Transiting Actions for NEW orders -->
+                                        <div class="flex items-center gap-2 select-none">
+                                            <button onclick="updateStatus('{{ order.id }}', 'Accepted')" class="inline-flex items-center gap-1.5 px-3 py-2 text-[9px] uppercase tracking-[0.2em] font-bold bg-primary text-white hover:opacity-90 transition-opacity">
+                                                <i class="fa-solid fa-circle-check text-[9px]"></i> Accept
+                                            </button>
+                                            <button onclick="updateStatus('{{ order.id }}', 'Cancelled')" class="inline-flex items-center gap-1.5 px-3 py-2 text-[9px] uppercase tracking-[0.2em] font-bold border border-destructive text-destructive hover:bg-destructive hover:text-white transition-all">
+                                                <i class="fa-solid fa-circle-xmark text-[9px]"></i> Cancel
+                                            </button>
+                                        </div>
+                                    {% elif order.status == 'Cancelled' %}
+                                        <!-- Static Cancelled state -->
+                                        <span class="inline-flex px-2.5 py-1.5 text-[9px] uppercase tracking-[0.2em] font-bold bg-destructive/15 text-destructive border border-destructive/20 select-none">
+                                            Cancelled
+                                        </span>
+                                    {% else %}
+                                        <!-- Select Dropdown for non-New statuses -->
+                                        <select
+                                            onchange="updateStatus('{{ order.id }}', this.value)"
+                                            class="px-3 py-1.5 text-[9px] uppercase tracking-[0.2em] font-bold outline-none cursor-pointer border select-none transition-colors duration-300
+                                            {% if order.status == 'Accepted' %}bg-primary/10 text-primary border-primary/20
+                                            {% elif order.status == 'Shipped' %}bg-accent/15 text-accent border-accent/30
+                                            {% elif order.status == 'Delivered' or order.status == 'Completed' %}bg-emerald-50 text-emerald-800 border-emerald-200
+                                            {% else %}bg-secondary text-foreground border-border{% endif %}"
+                                        >
+                                            {% for opt in status_options %}
+                                            {% if opt != 'Cancelled' %}
+                                            <option value="{{ opt }}" {% if order.status == opt or order.status == 'Completed' and opt == 'Delivered' %}selected{% endif %} class="bg-background text-foreground uppercase font-bold">{{ opt }}</option>
+                                            {% endif %}
+                                            {% endfor %}
+                                            <option value="Cancelled" class="bg-background text-foreground uppercase font-bold">Cancelled</option>
+                                        </select>
+                                    {% endif %}
+                                </td>
+
+                                <!-- Invoice Link Detail Action -->
+                                <td class="px-6 py-4 text-center select-none">
+                                    <a
+                                        href="{% url 'admin_order_detail' order.id %}"
+                                        class="inline-flex items-center justify-center w-8 h-8 border border-border bg-white text-muted-foreground hover:text-foreground hover:border-foreground transition-all rounded-xs"
+                                        aria-label="View Invoice"
+                                        title="View Invoice"
+                                    >
+                                        <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                                    </a>
+                                </td>
+
+							</tr>
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination Block -->
+        {% if paginated_orders.has_other_pages %}
+        <div class="mt-6 flex flex-col sm:flex-row items-center justify-between border border-border bg-card px-6 py-4 gap-4 select-none shadow-xs">
+            <div class="text-xs text-muted-foreground font-medium">
+                Showing Page <span class="font-bold text-foreground">{{ paginated_orders.number }}</span> of <span class="font-bold text-foreground">{{ paginated_orders.paginator.num_pages }}</span> (Total {{ paginated_orders.paginator.count }} orders)
+            </div>
+            
+            <div class="flex items-center gap-1.5">
+                {% if paginated_orders.has_previous %}
+                <a href="?page={{ paginated_orders.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}" class="inline-flex items-center justify-center px-3 py-2 text-[10px] uppercase tracking-[0.2em] font-bold border border-border bg-white hover:border-foreground hover:bg-secondary/10 transition-all shadow-xs" aria-label="Previous">
+                    <i class="fa-solid fa-chevron-left text-[9px]"></i>
+                </a>
+                {% else %}
+                <span class="inline-flex items-center justify-center px-3 py-2 text-[10px] uppercase tracking-[0.2em] font-bold border border-border/40 text-muted-foreground/45 cursor-not-allowed select-none bg-secondary/5" aria-label="Previous">
+                    <i class="fa-solid fa-chevron-left text-[9px]"></i>
+                </span>
+                {% endif %}
+
+                {% for i in paginated_orders.paginator.page_range %}
+                    {% if paginated_orders.number == i %}
+                    <span class="inline-flex items-center justify-center w-8 h-8 text-[10px] font-bold bg-primary text-white border border-primary">
+                        {{ i }}
+                    </span>
+                    {% elif i > paginated_orders.number|add:-3 and i < paginated_orders.number|add:3 %}
+                    <a href="?page={{ i }}{% if query %}&q={{ query }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}" class="inline-flex items-center justify-center w-8 h-8 text-[10px] font-bold border border-border bg-white hover:border-foreground hover:bg-secondary/15 transition-all">
+                        {{ i }}
+                    </a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if paginated_orders.has_next %}
+                <a href="?page={{ paginated_orders.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}" class="inline-flex items-center justify-center px-3 py-2 text-[10px] uppercase tracking-[0.2em] font-bold border border-border bg-white hover:border-foreground hover:bg-secondary/10 transition-all shadow-xs" aria-label="Next">
+                    <i class="fa-solid fa-chevron-right text-[9px]"></i>
+                </a>
+                {% else %}
+                <span class="inline-flex items-center justify-center px-3 py-2 text-[10px] uppercase tracking-[0.2em] font-bold border border-border/40 text-muted-foreground/45 cursor-not-allowed select-none bg-secondary/5" aria-label="Next">
+                    <i class="fa-solid fa-chevron-right text-[9px]"></i>
+                </span>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- Side-by-Side Split Inventory Dashboard Row -->
+    <section class="max-w-7xl mx-auto px-6 sm:px-10 pb-24 w-full grid lg:grid-cols-2 gap-8 relative z-10">
+        
+        <!-- Low Stock Products Column -->
+        <div class="border border-border bg-card shadow-xs flex flex-col">
+            <div class="px-5 py-4 border-b border-border/60 flex flex-wrap items-center justify-between gap-4 bg-secondary/5 select-none">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation text-destructive text-sm"></i>
+                    <h3 class="font-serif text-xl font-bold text-foreground">Low stock items</h3>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-[9px] uppercase tracking-[0.25em] font-bold bg-destructive/15 text-destructive px-2 py-0.5 rounded-sm">
+                        {{ low_stock_products.count }} items
+                    </span>
+                    <a href="{% url 'admin_manage_inventory' %}" class="text-[9px] uppercase tracking-[0.2em] font-bold bg-primary text-white hover:bg-foreground transition-colors px-2.5 py-1 flex items-center gap-1.5" title="Manage Inventory">
+                        <i class="fa-solid fa-pen-to-square"></i> Manage
+                    </a>
+                </div>
+            </div>
+            
+            <div class="divide-y divide-border/40 overflow-y-auto max-h-[350px] flex-1">
+                {% if low_stock_products.count == 0 %}
+                <div class="px-5 py-12 text-center text-sm text-muted-foreground">
+                    <i class="fa-solid fa-circle-check text-2xl text-emerald-600/35 mb-2 block"></i>
+                    Excellent! All products are well stocked.
+                </div>
+                {% else %}
+                    {% for p in low_stock_products %}
+                    <div class="px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-secondary/10 transition-colors">
+                        <div class="min-w-0">
+                            <p class="text-sm font-semibold text-foreground truncate">{{ p.product_name }}</p>
+                            <p class="text-xs font-mono text-muted-foreground mt-0.5 select-all truncate">slug: {{ p.slug }}</p>
+                        </div>
+                        <span class="text-[10px] uppercase tracking-[0.2em] font-bold px-3 py-1 rounded-sm shrink-0 self-start sm:self-auto
+                            {% if p.stock <= 2 %}bg-destructive/15 text-destructive border border-destructive/20
+                            {% else %}bg-amber-50 text-amber-800 border border-amber-200{% endif %}"
+                        >
+                            {{ p.stock }} remaining
+                        </span>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Top Selling Products Column -->
+        <div class="border border-border bg-card shadow-xs flex flex-col">
+            <div class="px-5 py-4 border-b border-border/60 flex flex-wrap items-center justify-between gap-4 bg-secondary/5 select-none">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-fire-flame-curved text-primary text-sm"></i>
+                    <h3 class="font-serif text-xl font-bold text-foreground">Top selling products</h3>
+                </div>
+                <span class="text-[9px] uppercase tracking-[0.25em] font-bold text-muted-foreground">
+                    ALL-TIME STATS
+                </span>
+            </div>
+            
+            <div class="divide-y divide-border/40 overflow-y-auto max-h-[350px] flex-1">
+                {% if top_selling_products|length == 0 %}
+                <div class="px-5 py-12 text-center text-sm text-muted-foreground">
+                    <i class="fa-solid fa-face-meh text-2xl text-muted-foreground/35 mb-2 block"></i>
+                    No products sold yet.
+                </div>
+                {% else %}
+                    {% for p in top_selling_products %}
+                    <div class="px-5 py-3.5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 hover:bg-secondary/10 transition-colors">
+                        
+                        <div class="flex items-center gap-4 min-w-0 w-full sm:w-auto flex-1">
+                            <!-- Rank Counter -->
+                            <span class="font-serif text-2xl font-bold text-muted-foreground/50 w-8 select-none shrink-0">
+                                0{{ forloop.counter }}
+                            </span>
+
+                            <!-- Product info -->
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-foreground truncate">{{ p.product__product_name }}</p>
+                                <p class="text-xs text-muted-foreground mt-0.5">Price: ₹{{ p.product__price }}</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Count badge -->
+                        <span class="text-xs font-bold font-mono text-primary bg-primary/10 px-3 py-1.5 rounded-sm shrink-0 select-none self-start sm:self-auto ml-12 sm:ml-0">
+                            {{ p.total_sold }} sold
+                        </span>
+
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
+    </section>
+
+    <!-- Editorial Minimal Footer -->
+    <footer class="border-t border-border/60 bg-card/45 mt-auto relative z-10 select-none">
+        <div class="max-w-7xl mx-auto px-6 sm:px-10 py-8 flex flex-col sm:flex-row justify-between gap-6 text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-muted-foreground items-center">
+            
+            <div class="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
+                <a href="/" class="font-serif leading-none text-base tracking-tight select-none">
+                    <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+                </a>
+                <span class="text-muted-foreground/60 font-sans">— Admin Operations Panel</span>
+            </div>
+            
+            <div class="flex gap-6 font-semibold">
+                <span class="text-muted-foreground">Nexuskart Staff Only</span>
+            </div>
+            
+        </div>
+    </footer>
+
+    <!-- Interactive Javascript Logic -->
+    <script>
+        // Dropdown Toggle Logic
+        const bellBtn = document.getElementById('bell-btn');
+        const bellDropdown = document.getElementById('bell-dropdown');
+
+        bellBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            bellDropdown.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!bellDropdown.classList.contains('hidden') && !bellDropdown.contains(e.target) && e.target !== bellBtn) {
+                bellDropdown.classList.add('hidden');
+            }
+        });
+
+        // Show toast alerts dynamically
+        function showToast(message, isError = false) {
+            const container = document.getElementById('ajax-toast-container');
+            const toast = document.createElement('div');
+            toast.className = `bg-white border-l-4 ${isError ? 'border-destructive' : 'border-primary'} px-5 py-4 shadow-xl flex items-start gap-4 transition-all duration-500 transform translate-x-10 opacity-0`;
+            
+            toast.innerHTML = `
+                <div class="text-xl">
+                    <i class="fa-solid ${isError ? 'fa-circle-exclamation text-destructive' : 'fa-circle-check text-primary'}"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-xs uppercase tracking-widest text-muted-foreground">Notification</p>
+                    <p class="text-sm font-semibold mt-0.5">${message}</p>
+                </div>
+                <button class="text-muted-foreground/60 hover:text-foreground text-sm leading-none">&times;</button>
+            `;
+            
+            // Close btn action
+            toast.querySelector('button').addEventListener('click', () => {
+                toast.classList.add('opacity-0', 'translate-x-10');
+                setTimeout(() => toast.remove(), 500);
+            });
+
+            container.appendChild(toast);
+            
+            // Trigger animation
+            setTimeout(() => {
+                toast.classList.remove('opacity-0', 'translate-x-10');
+                toast.classList.add('translate-x-0');
+            }, 50);
+
+            // Auto dismiss
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-x-10');
+                setTimeout(() => toast.remove(), 500);
+            }, 4500);
+        }
+
+        // AJAX update status
+        function updateStatus(orderId, newStatus) {
+            fetch("{% url 'admin_dashboard_update_status' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: `order_id=${orderId}&status=${newStatus}`
+            })
+            .then(response => response.json().then(data => ({ status: response.status, body: data })))
+            .then(res => {
+                if (res.status === 200 && res.body.success) {
+                    showToast(res.body.message);
+                    
+                    // Refresh stats dynamically or update cells
+                    const cell = document.getElementById(`status-cell-${orderId}`);
+                    if (cell) {
+                        if (newStatus === 'Cancelled') {
+                            cell.innerHTML = `
+                                <span class="inline-flex px-2.5 py-1.5 text-[9px] uppercase tracking-[0.2em] font-bold bg-destructive/15 text-destructive border border-destructive/20 select-none">
+                                    Cancelled
+                                </span>
+                            `;
+                        } else {
+                            let colorClass = '';
+                            if (newStatus === 'Accepted') colorClass = 'bg-primary/10 text-primary border-primary/20';
+                            else if (newStatus === 'Shipped') colorClass = 'bg-accent/15 text-accent border-accent/30';
+                            else if (newStatus === 'Delivered' || newStatus === 'Completed') colorClass = 'bg-emerald-50 text-emerald-800 border-emerald-200';
+                            else colorClass = 'bg-secondary text-foreground border-border';
+
+                            cell.innerHTML = `
+                                <select
+                                    onchange="updateStatus('${orderId}', this.value)"
+                                    class="px-3 py-1.5 text-[9px] uppercase tracking-[0.2em] font-bold outline-none cursor-pointer border select-none transition-colors duration-300 ${colorClass}"
+                                >
+                                    <option value="Accepted" ${newStatus === 'Accepted' ? 'selected' : ''}>Accepted</option>
+                                    <option value="Shipped" ${newStatus === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                                    <option value="Delivered" ${newStatus === 'Delivered' || newStatus === 'Completed' ? 'selected' : ''}>Delivered</option>
+                                    <option value="Cancelled" ${newStatus === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                                </select>
+                            `;
+                        }
+                    }
+                    
+                    // Adjust pending count numbers if we transitioned from New/Accepted to other states
+                    if (newStatus === 'Shipped' || newStatus === 'Delivered' || newStatus === 'Cancelled') {
+                        // We can decrement counts
+                        const pendingCountHero = document.getElementById('hero-pending-count');
+                        const pendingCountStat = document.getElementById('stat-pending-count');
+                        if (pendingCountHero) {
+                            let curr = parseInt(pendingCountHero.innerText);
+                            if (curr > 0) {
+                                pendingCountHero.innerText = curr - 1;
+                                if (pendingCountStat) pendingCountStat.innerText = curr - 1;
+                            }
+                        }
+                    }
+                } else {
+                    showToast(res.body.error || 'Failed to update order status.', true);
+                }
+            })
+            .catch(err => {
+                console.error('Error updating status:', err);
+                showToast('Network error occurred while updating order status.', true);
+            });
+        }
+
+        // Notification List actions (Accept / Cancel)
+        function handleNotifAction(orderId, action) {
+            fetch("{% url 'admin_dashboard_update_status' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: `order_id=${orderId}&status=${action}`
+            })
+            .then(response => response.json().then(data => ({ status: response.status, body: data })))
+            .then(res => {
+                if (res.status === 200 && res.body.success) {
+                    showToast(res.body.message);
+                    
+                    // Remove from notification list
+                    const item = document.getElementById(`notif-order-${orderId}`);
+                    if (item) {
+                        item.classList.add('opacity-0', 'scale-95');
+                        setTimeout(() => {
+                            item.remove();
+                            // Update bell counts
+                            const badge = bellBtn.querySelector('.bg-destructive');
+                            if (badge) {
+                                let curr = parseInt(badge.innerText);
+                                if (curr <= 1) {
+                                    badge.remove();
+                                    document.getElementById('notification-list').innerHTML = `
+                                        <div class="px-5 py-10 text-center text-sm text-muted-foreground">
+                                            <i class="fa-solid fa-circle-check text-2xl text-primary/30 mb-2 block"></i>
+                                            You're all caught up. No new orders.
+                                        </div>
+                                    `;
+                                } else {
+                                    badge.innerText = curr - 1;
+                                }
+                            }
+                        }, 300);
+                    }
+                    
+                    // Update table row if exists
+                    const cell = document.getElementById(`status-cell-${orderId}`);
+                    if (cell) {
+                        let colorClass = action === 'Accepted' ? 'bg-primary/10 text-primary border-primary/20' : 'bg-destructive/15 text-destructive border-destructive/20';
+                        cell.innerHTML = `
+                            <select
+                                onchange="updateStatus('${orderId}', this.value)"
+                                class="px-3 py-1.5 text-[9px] uppercase tracking-[0.2em] font-bold outline-none cursor-pointer border select-none transition-colors duration-300 ${colorClass}"
+                            >
+                                <option value="Accepted" ${action === 'Accepted' ? 'selected' : ''}>Accepted</option>
+                                <option value="Shipped">Shipped</option>
+                                <option value="Delivered">Delivered</option>
+                                <option value="Cancelled" ${action === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                            </select>
+                        `;
+                    }
+                } else {
+                    showToast(res.body.error || 'Failed to update order status.', true);
+                }
+            })
+            .catch(err => {
+                console.error('Error in notif action:', err);
+                showToast('Network error occurred.', true);
+            });
+        }
+
+        // Mobile Menu Drawer Logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuWrapper = document.getElementById('mobile-menu-wrapper');
+            const menuBackdrop = document.getElementById('mobile-menu-backdrop');
+            const menuPanel = document.getElementById('mobile-menu-panel');
+            
+            const openMenuBtn = document.getElementById('open-mobile-menu');
+            const closeMenuBtn = document.getElementById('close-mobile-menu');
+            
+            function openMenu() {
+                if(!menuWrapper) return;
+                menuWrapper.classList.remove('hidden');
+                setTimeout(() => {
+                    menuBackdrop.classList.remove('opacity-0');
+                    menuBackdrop.classList.add('opacity-100');
+                    menuPanel.classList.remove('translate-x-full');
+                    menuPanel.classList.add('translate-x-0');
+                }, 10);
+            }
+            
+            function closeMenu() {
+                if(!menuWrapper) return;
+                menuBackdrop.classList.remove('opacity-100');
+                menuBackdrop.classList.add('opacity-0');
+                menuPanel.classList.remove('translate-x-0');
+                menuPanel.classList.add('translate-x-full');
+                
+                setTimeout(() => {
+                    menuWrapper.classList.add('hidden');
+                }, 300);
+            }
+            
+            if(openMenuBtn) openMenuBtn.addEventListener('click', openMenu);
+            if(closeMenuBtn) closeMenuBtn.addEventListener('click', closeMenu);
+            if(menuBackdrop) menuBackdrop.addEventListener('click', closeMenu);
+        });
+    </script>
+</body>
+</html>

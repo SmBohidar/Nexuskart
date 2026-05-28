@@ -1,0 +1,453 @@
+{% load static %}
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Nexuskart — Fashion, curated for you</title>
+    
+    <link href="{% static 'image/nexuskartlogo-64x64.webp' %}" rel="shortcut-icon" sizes="64x64" type="image/webp">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Work+Sans:wght@100..900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: 'oklch(0.97 0.012 85)',
+                        foreground: 'oklch(0.18 0.025 160)',
+                        card: 'oklch(0.99 0.008 85)',
+                        primary: 'oklch(0.28 0.055 160)',
+                        secondary: 'oklch(0.93 0.015 85)',
+                        accent: 'oklch(0.72 0.115 80)',
+                        'muted-foreground': 'oklch(0.45 0.02 150)',
+                        border: 'oklch(0.85 0.012 85)',
+                        input: 'oklch(0.88 0.012 85)',
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+                        sans: ['"Work Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background-color: oklch(0.97 0.012 85);
+            color: oklch(0.18 0.025 160);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Customize scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: oklch(0.85 0.012 85);
+            border-radius: 3px;
+        }
+    </style>
+<!-- Include jQuery since we use AJAX for wishlist toggling -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body class="min-h-screen bg-background text-foreground flex flex-col">
+
+    <!-- Main Navigation Header -->
+    <header class="border-b border-border/60 bg-background z-30">
+        <div class="max-w-7xl mx-auto px-6 sm:px-10 py-5 flex items-center gap-8 justify-between md:justify-start">
+            
+            <!-- Branding Wordmark Logo -->
+            <a href="/" class="font-serif leading-none text-2xl sm:text-3xl tracking-tight select-none">
+                <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+            </a>
+
+            <!-- Search & Navigation Block (Hidden on mobile) -->
+            <div class="hidden md:flex items-center gap-2 flex-1 max-w-2xl">
+                <!-- All Categories Dropdown Menu -->
+                <div class="relative group">
+                    <button class="flex items-center gap-2 bg-primary text-white px-4 py-2.5 text-[11px] uppercase tracking-[0.25em] hover:bg-foreground transition-colors">
+                        All Categories <i class="fa-solid fa-chevron-down text-[9px]"></i>
+                    </button>
+                    <div class="absolute left-0 mt-1 w-48 bg-white border border-border/80 rounded-sm shadow-lg py-2 hidden group-hover:block z-50">
+                        <a href="{% url 'store' %}" class="block px-4 py-2 text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">All Products</a>
+                        {% for category in links %}
+                        <a href="{{ category.get_url }}" class="block px-4 py-2 text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">{{ category.category_name }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Store Button -->
+                <a href="{% url 'store' %}" class="border border-border/80 bg-white px-4 py-2.5 text-[11px] uppercase tracking-[0.25em] hover:border-foreground transition-colors">
+                    Store
+                </a>
+
+                <!-- Search Input Form -->
+                <form action="{% url 'search' %}" method="GET" class="flex-1 flex items-center border border-border/80 bg-white focus-within:border-foreground transition-colors">
+                    <input
+                        type="text"
+                        name="keyword"
+                        placeholder="Search drops, labels, or essentials…"
+                        class="flex-1 bg-transparent px-4 py-2.5 text-sm focus:outline-none placeholder:text-muted-foreground/45 text-foreground"
+                    />
+                    <button type="submit" class="px-4 py-2.5 text-muted-foreground hover:text-primary transition-colors">
+                        <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right-aligned Actions Panel -->
+            <div class="flex items-center gap-6 ml-auto">
+                <!-- Welcome & Guest authentication widget -->
+                <div class="hidden sm:block text-right text-[10px] uppercase tracking-[0.25em] select-none">
+                    {% if user.id is None %}
+                        <div class="text-muted-foreground">Welcome</div>
+                        <a href="{% url 'login' %}" class="text-foreground hover:text-primary transition-colors font-medium">
+                            Sign in <span class="text-muted-foreground/60">| Register</span>
+                        </a>
+                    {% else %}
+                        <div class="text-muted-foreground">Welcome, {{ user.first_name }}</div>
+                        <div class="flex gap-2 justify-end">
+                            <a href="{% url 'dashboard' %}" class="text-foreground hover:text-primary transition-colors font-medium">Dashboard</a>
+                            <span class="text-muted-foreground/60">|</span>
+                            <a href="{% url 'logout' %}" class="text-foreground hover:text-primary transition-colors font-medium">Sign out</a>
+                        </div>
+                    {% endif %}
+                </div>
+
+                                <!-- Mobile Search Toggle -->
+                <button onclick="document.getElementById('mobile-search-bar').classList.toggle('hidden'); document.getElementById('mobile-search-input').focus();" class="md:hidden relative p-2 text-foreground hover:text-primary transition-colors" aria-label="Toggle Search">
+                    <i class="fa-solid fa-magnifying-glass text-xl"></i>
+                </button>
+                
+                <!-- Wishlist link -->
+                <a href="{% url 'wishlist' %}" class="relative p-2 text-foreground hover:text-primary transition-colors" aria-label="Wishlist">
+                    <i class="fa-regular fa-heart text-xl"></i>
+                    {% if wishlist_count > 0 %}
+                    <span class="absolute -top-0.5 -right-0.5 bg-accent text-foreground text-[9px] w-4.5 h-4.5 rounded-full flex items-center justify-center font-bold px-1 border border-background">
+                        {{ wishlist_count }}
+                    </span>
+                    {% endif %}
+                </a>
+
+                <!-- Shopping Bag dynamically connected to cart_count badge -->
+                <a href="{% url 'cart' %}" class="relative p-2 text-foreground hover:text-primary transition-colors" aria-label="Cart">
+                    <i class="fa-solid fa-bag-shopping text-xl"></i>
+                    <span class="absolute -top-0.5 -right-0.5 bg-accent text-foreground text-[9px] w-4.5 h-4.5 rounded-full flex items-center justify-center font-bold px-1 border border-background">
+                        {{ cart_count }}
+                    </span>
+                </a>
+                
+                <!-- Mobile Menu Hamburger -->
+                <button id="open-mobile-menu" class="md:hidden text-foreground hover:text-primary transition-colors focus:outline-none ml-2">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Horizontal Categories Subnav -->
+        <nav class="max-w-7xl mx-auto px-6 sm:px-10 pb-4 flex gap-8 text-[11px] uppercase tracking-[0.3em] text-muted-foreground overflow-x-auto select-none">
+            <a href="{% url 'store' %}" class="whitespace-nowrap text-foreground hover:text-primary transition-colors">
+                New In
+            </a>
+            {% for category in links %}
+            <a href="{{ category.get_url }}" class="whitespace-nowrap hover:text-primary transition-colors">
+                {{ category.category_name }}
+            </a>
+            {% endfor %}
+        </nav>
+    </header>
+
+    <!-- Mobile Search Bar (Hidden by default) -->
+    <div id="mobile-search-bar" class="hidden md:hidden border-b border-border/60 bg-white px-6 py-3 fixed top-[72px] sm:top-[88px] left-0 w-full z-50 shadow-md">
+        <form action="{% url 'search' %}" method="GET" class="flex items-center border border-border/80 bg-background focus-within:border-foreground transition-colors shadow-sm w-full">
+            <input id="mobile-search-input" type="text" name="keyword" placeholder="Search products..." class="flex-1 bg-transparent px-4 py-2 text-sm focus:outline-none placeholder:text-muted-foreground/45 text-foreground w-full">
+            <button type="submit" class="px-4 py-2 text-muted-foreground hover:text-primary transition-colors">
+                <i class="fa-solid fa-magnifying-glass text-sm"></i>
+            </button>
+        </form>
+    </div>
+
+    <!-- Main Content Container -->
+    <main class="flex-1">
+        <section class="max-w-7xl mx-auto px-6 sm:px-10 pt-8">
+            {% include 'includes/promo_banner.html' %}
+        </section>
+        
+        <!-- Hero Banner Section -->
+        <section class="max-w-7xl mx-auto px-6 sm:px-10 pt-8 pb-16">
+            <div class="relative bg-card border border-border/60 overflow-hidden">
+                <div class="grid md:grid-cols-2 gap-0 min-h-[460px]">
+                    
+                    <!-- Left Hero details column -->
+                    <div class="flex flex-col justify-center p-10 sm:p-16 select-none">
+                        <p class="text-[11px] uppercase tracking-[0.35em] text-accent mb-6">Drop 01 — Spring Collection</p>
+                        <h1 class="font-serif text-5xl sm:text-6xl leading-[1.05] tracking-tight text-foreground">
+                            Fashion that <br />
+                            <em class="text-primary font-serif italic">moves</em> with you.
+                        </h1>
+                        <p class="mt-6 max-w-md text-muted-foreground leading-relaxed text-sm sm:text-base">
+                            {% if user.id is not None %}
+                                Welcome back, {{ user.first_name }}. Your edit is waiting — fresh arrivals, curated specifically for the season.
+                            {% else %}
+                                Your premier fashion & lifestyle store. Handpicked drops, modern essentials, and the labels worth knowing.
+                            {% endif %}
+                        </p>
+                        <div class="mt-10 flex flex-wrap gap-3">
+                            <a href="{% url 'store' %}" class="inline-block bg-primary text-white px-8 py-4.5 text-[11px] uppercase tracking-[0.3em] hover:bg-foreground transition-colors duration-300 shadow-sm" style="padding-top: 1.125rem; padding-bottom: 1.125rem;">
+                                Shop the collection →
+                            </a>
+                            {% if user.id is None %}
+                            <a href="{% url 'register' %}" class="inline-block border border-border/80 bg-white text-foreground px-8 py-4.5 text-[11px] uppercase tracking-[0.3em] hover:border-foreground transition-colors duration-300 shadow-sm" style="padding-top: 1.125rem; padding-bottom: 1.125rem;">
+                                Become a member
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Right Editorial column -->
+                    <div class="relative bg-secondary/30 hidden md:flex items-center justify-center overflow-hidden select-none border-l border-border/40">
+                        <div class="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/15"></div>
+                        <div class="absolute top-10 right-10 w-32 h-32 rounded-full border border-accent/40"></div>
+                        <div class="absolute bottom-16 left-12 w-20 h-20 rounded-full bg-accent/20 blur-2xl"></div>
+                        <div class="relative text-center px-10 z-10">
+                            <p class="font-serif italic text-2xl text-foreground/80 leading-relaxed">
+                                "Quiet luxury,<br />loud confidence."
+                            </p>
+                            <div class="mt-6 w-12 h-px bg-accent mx-auto"></div>
+                            <p class="mt-4 text-[10px] uppercase tracking-[0.4em] text-muted-foreground">Editor's note — May</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Popular products grid section -->
+        <section class="max-w-7xl mx-auto px-6 sm:px-10 pb-24">
+            
+            <!-- Grid Header -->
+            <div class="flex items-end justify-between mb-10 select-none">
+                <div>
+                    <p class="text-[11px] uppercase tracking-[0.35em] text-muted-foreground">Most loved</p>
+                    <h2 class="mt-2 font-serif text-3xl sm:text-4xl tracking-tight text-foreground">
+                        Popular this <em class="text-primary font-serif italic">week</em>
+                    </h2>
+                </div>
+                <a href="{% url 'store' %}" class="text-[11px] uppercase tracking-[0.3em] border border-border/80 bg-white px-5 py-3 hover:border-foreground transition-colors shadow-sm duration-300">
+                    See all →
+                </a>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                {% for product in products %}
+                <article class="group cursor-pointer">
+                    <!-- Image Card Container -->
+                    <div class="relative aspect-[4/5] bg-white border border-border/60 overflow-hidden mb-2.5 shadow-sm">
+                        <div class="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/15 group-hover:from-primary/10 group-hover:to-accent/25 transition-colors z-10"></div>
+                        
+
+                        
+                        <!-- Clothes Real Image Display -->
+                        <div class="absolute inset-0 flex items-center justify-center overflow-hidden">
+                            <img 
+                                src="{{ product.images.url }}" 
+                                alt="{{ product.product_name }}"
+                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                        </div>
+
+                        <!-- Rating Overlay Badge (Myntra Style: 4.5 ★ | 8) -->
+                        <div class="absolute bottom-3 left-3 bg-white/90 backdrop-blur px-2.5 py-1 border border-border/30 z-20 flex items-center gap-1.5 shadow-xs text-[10px] font-bold text-foreground select-none">
+                            <span>{{ product.averageReview|floatformat:1 }}</span>
+                            <i class="fa-solid fa-star text-[9px] text-teal-600"></i>
+                            <span class="text-muted-foreground/30 font-light">|</span>
+                            <span class="text-muted-foreground font-normal">{{ product.countReview }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Quick Add Button (Visible below the image at all times) -->
+                    <div class="mb-3 px-1">
+                        <a href="{{ product.get_url }}" class="block text-center w-full bg-primary text-white py-2.5 text-[10px] uppercase tracking-[0.3em] hover:bg-foreground transition-colors duration-300 shadow-sm font-semibold">
+                            Quick add
+                        </a>
+                    </div>
+
+                    <!-- Premium Text Details (Stacked vertically under the image) -->
+                    <div class="px-1 select-none">
+                        <!-- Category/Brand Line -->
+                        <div class="text-[9.5px] uppercase tracking-[0.25em] font-bold text-muted-foreground mb-1">
+                            {{ product.category.category_name }}
+                        </div>
+                        
+                        <!-- Product Title / Short Description -->
+                        <a href="{{ product.get_url }}" class="block font-serif text-[17px] leading-tight text-foreground hover:text-primary transition-colors line-clamp-1">
+                            {{ product.product_name }}
+                        </a>
+                        
+                        <!-- Price Line -->
+                        <div class="mt-1.5 text-xs">
+                            <span class="font-semibold text-foreground text-sm">₹{{ product.price }}</span>
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Editorial Footer -->
+    <footer class="border-t border-border/60 bg-card/45 mt-auto select-none">
+        <div class="max-w-7xl mx-auto px-6 sm:px-10 py-10 flex flex-col sm:flex-row justify-between gap-6 text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-muted-foreground items-center">
+            
+            <div class="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
+                <a href="/" class="font-serif leading-none text-base tracking-tight select-none">
+                    <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+                </a>
+                <span class="text-muted-foreground/60 font-sans">— Your premier fashion & lifestyle store</span>
+            </div>
+            
+            <div class="flex gap-6 font-medium">
+                <a href="{% url 'help' %}" class="hover:text-foreground transition-colors">Help</a>
+                <a href="{% url 'shipping' %}" class="hover:text-foreground transition-colors">Shipping</a>
+                <a href="{% url 'returns' %}" class="hover:text-foreground transition-colors">Returns</a>
+                <a href="{% url 'privacy' %}" class="hover:text-foreground transition-colors">Privacy</a>
+                <a href="{% url 'terms' %}" class="hover:text-foreground transition-colors">Terms</a>
+            </div>
+            
+        </div>
+    </footer>
+
+    <script>
+        $(document).ready(function() {
+            $('.btn-toggle-wishlist').on('click', function(e) {
+                e.preventDefault();
+                var btn = $(this);
+                var icon = btn.find('i');
+                var productId = btn.data('product-id');
+                var url = "/store/wishlist/toggle/" + productId + "/";
+
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    success: function(response) {
+                        if (response.status === 'added') {
+                            btn.removeClass('text-muted-foreground hover:text-primary').addClass('text-primary');
+                            icon.removeClass('fa-regular').addClass('fa-solid text-rose-500');
+                        } else if (response.status === 'removed') {
+                            btn.removeClass('text-primary').addClass('text-muted-foreground hover:text-primary');
+                            icon.removeClass('fa-solid text-rose-500').addClass('fa-regular');
+                        }
+                    },
+                    error: function(xhr) {
+                        if(xhr.status === 401 || xhr.status === 403) {
+                            window.location.href = "{% url 'login' %}";
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+    <!-- Mobile Navigation Menu Drawer -->
+    <div id="mobile-menu-wrapper" class="fixed inset-0 z-[100] overflow-hidden hidden" aria-modal="true" role="dialog">
+        <!-- Backdrop -->
+        <div id="mobile-menu-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-xs transition-opacity duration-300 opacity-0"></div>
+        
+        <!-- Drawer Panel -->
+        <div id="mobile-menu-panel" class="absolute top-0 right-0 h-full w-[80%] max-w-[320px] bg-background shadow-2xl border-l border-border/40 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col z-[101]">
+            
+            <!-- Drawer Header -->
+            <div class="flex items-center justify-between px-6 py-5 border-b border-border/60 select-none">
+                <span class="font-serif text-lg tracking-wider uppercase text-foreground">Menu</span>
+                <button id="close-mobile-menu" class="text-muted-foreground hover:text-foreground transition-colors p-1" aria-label="Close menu">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <!-- Drawer Scrollable Content -->
+            <div class="flex-1 overflow-y-auto py-6 select-none flex flex-col gap-6">
+                
+                <!-- Links -->
+                <nav class="flex flex-col px-6 gap-4 text-[11px] uppercase tracking-[0.25em] font-semibold text-muted-foreground">
+                    <a href="{% url 'store' %}" class="hover:text-primary transition-colors py-2">Store</a>
+                    {% for cat in links %}
+                        <a href="{{ cat.get_url }}" class="hover:text-primary transition-colors py-2">{{ cat.category_name }}</a>
+                    {% endfor %}
+                </nav>
+                
+                <hr class="border-border/60 mx-6">
+                
+                <!-- Auth / User -->
+                <div class="px-6 flex flex-col gap-4 text-[11px] uppercase tracking-[0.25em] font-semibold">
+                    {% if user.id is None %}
+                        <a href="{% url 'login' %}" class="text-foreground hover:text-primary transition-colors py-2">Sign in</a>
+                        <a href="{% url 'register' %}" class="text-foreground hover:text-primary transition-colors py-2">Register</a>
+                    {% else %}
+                        <div class="text-muted-foreground/60 mb-2 normal-case tracking-normal text-xs">Signed in as <span class="font-bold text-foreground">{{ user.first_name }}</span></div>
+                        <a href="{% url 'dashboard' %}" class="text-foreground hover:text-primary transition-colors py-2">Dashboard</a>
+                        <a href="{% url 'logout' %}" class="text-rose-600 hover:text-rose-800 transition-colors py-2">Sign out</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script for Mobile Menu -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuWrapper = document.getElementById('mobile-menu-wrapper');
+            const menuBackdrop = document.getElementById('mobile-menu-backdrop');
+            const menuPanel = document.getElementById('mobile-menu-panel');
+            
+            const openMenuBtn = document.getElementById('open-mobile-menu');
+            const closeMenuBtn = document.getElementById('close-mobile-menu');
+            
+            function openMenu() {
+                if(!menuWrapper) return;
+                menuWrapper.classList.remove('hidden');
+                setTimeout(() => {
+                    menuBackdrop.classList.remove('opacity-0');
+                    menuBackdrop.classList.add('opacity-100');
+                    menuPanel.classList.remove('translate-x-full');
+                    menuPanel.classList.add('translate-x-0');
+                }, 10);
+            }
+            
+            function closeMenu() {
+                if(!menuWrapper) return;
+                menuBackdrop.classList.remove('opacity-100');
+                menuBackdrop.classList.add('opacity-0');
+                menuPanel.classList.remove('translate-x-0');
+                menuPanel.classList.add('translate-x-full');
+                
+                setTimeout(() => {
+                    menuWrapper.classList.add('hidden');
+                }, 300);
+            }
+            
+            if(openMenuBtn) openMenuBtn.addEventListener('click', openMenu);
+            if(closeMenuBtn) closeMenuBtn.addEventListener('click', closeMenu);
+            if(menuBackdrop) menuBackdrop.addEventListener('click', closeMenu);
+        });
+    </script>
+</body>
+</html>

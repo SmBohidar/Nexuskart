@@ -1,0 +1,639 @@
+{% load static %}
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Checkout — Nexuskart</title>
+    
+    <link href="{% static 'image/nexuskartlogo-64x64.webp' %}" rel="shortcut-icon" sizes="64x64" type="image/webp">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Work+Sans:wght@100..900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: 'oklch(0.97 0.012 85)',
+                        foreground: 'oklch(0.18 0.025 160)',
+                        card: 'oklch(0.99 0.008 85)',
+                        primary: 'oklch(0.28 0.055 160)',
+                        secondary: 'oklch(0.93 0.015 85)',
+                        accent: 'oklch(0.72 0.115 80)',
+                        'muted-foreground': 'oklch(0.45 0.02 150)',
+                        border: 'oklch(0.85 0.012 85)',
+                        input: 'oklch(0.88 0.012 85)',
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+                        sans: ['"Work Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background-color: oklch(0.97 0.012 85);
+            color: oklch(0.18 0.025 160);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Customize scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: oklch(0.85 0.012 85);
+            border-radius: 3px;
+        }
+
+        /* Custom inputs styling */
+        input[type="text"], input[type="email"], select, textarea {
+            width: 100%;
+            background-color: transparent;
+            border: none;
+            border-bottom: 1.5px solid oklch(0.85 0.012 85);
+            padding: 0.75rem 0;
+            font-size: 1rem;
+            color: oklch(0.18 0.025 160);
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus, input[type="email"]:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: oklch(0.28 0.055 160);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-background text-foreground flex flex-col">
+
+    <!-- Main Navigation Header -->
+    <header class="sticky top-0 border-b border-border/60 bg-background z-40">
+        <div class="max-w-7xl mx-auto px-6 sm:px-10 py-5 flex items-center justify-between md:justify-start gap-8">
+            
+            <!-- Branding Wordmark Logo -->
+            <a href="/" class="font-serif leading-none text-2xl sm:text-3xl tracking-tight select-none">
+                <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+            </a>
+
+            <!-- Search & Navigation Block (Hidden on mobile) -->
+            <div class="hidden md:flex items-center gap-4 flex-1 max-w-3xl">
+                <!-- Store Link Button -->
+                <a href="{% url 'store' %}" class="border border-border/80 bg-white px-5 py-2.5 text-[11px] uppercase tracking-[0.25em] hover:border-foreground transition-colors duration-300 shadow-sm whitespace-nowrap">
+                    Store
+                </a>
+
+                <!-- Search Input Form -->
+                <form action="{% url 'search' %}" method="GET" class="flex-1 flex items-center border border-border/80 bg-white focus-within:border-foreground transition-colors shadow-sm">
+                    <input
+                        type="text"
+                        name="keyword"
+                        placeholder="Search drops, labels, or essentials…"
+                        class="flex-1 bg-transparent px-4 py-2.5 text-sm focus:outline-none placeholder:text-muted-foreground/45 text-foreground"
+                    />
+                    <button type="submit" class="px-4 py-2.5 text-muted-foreground hover:text-primary transition-colors">
+                        <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right-aligned Actions Panel -->
+            <div class="flex items-center gap-6 ml-auto">
+                <div class="hidden sm:block text-right text-[10px] uppercase tracking-[0.25em] select-none">
+                    {% if user.id is None %}
+                        <div class="text-muted-foreground">Welcome</div>
+                        <a href="{% url 'login' %}" class="text-foreground hover:text-primary transition-colors font-medium font-bold">
+                            Sign in <span class="text-muted-foreground/60">| Register</span>
+                        </a>
+                    {% else %}
+                        <div class="text-muted-foreground">Welcome, {{ user.first_name }}</div>
+                        <div class="flex gap-2 justify-end">
+                            <a href="{% url 'dashboard' %}" class="text-foreground hover:text-primary transition-colors font-medium font-bold">Dashboard</a>
+                            <span class="text-muted-foreground/60">|</span>
+                            <a href="{% url 'logout' %}" class="text-foreground hover:text-primary transition-colors font-medium font-bold">Sign out</a>
+                        </div>
+                    {% endif %}
+                </div>
+
+                                <!-- Mobile Search Toggle -->
+                <button onclick="document.getElementById('mobile-search-bar').classList.toggle('hidden'); document.getElementById('mobile-search-input').focus();" class="md:hidden relative p-2 text-foreground hover:text-primary transition-colors" aria-label="Toggle Search">
+                    <i class="fa-solid fa-magnifying-glass text-xl"></i>
+                </button>
+                
+                <!-- Wishlist link -->
+                <a href="{% url 'wishlist' %}" class="relative p-2 text-foreground hover:text-primary transition-colors" aria-label="Wishlist">
+                    <i class="fa-regular fa-heart text-xl"></i>
+                    {% if wishlist_count > 0 %}
+                    <span class="absolute -top-0.5 -right-0.5 bg-accent text-foreground text-[9px] w-4.5 h-4.5 rounded-full flex items-center justify-center font-bold px-1 border border-background">
+                        {{ wishlist_count }}
+                    </span>
+                    {% endif %}
+                </a>
+
+                <!-- Shopping Bag Cart Badge -->
+                <a href="{% url 'cart' %}" class="relative p-2 text-foreground hover:text-primary transition-colors" aria-label="Cart">
+                    <i class="fa-solid fa-bag-shopping text-xl"></i>
+                    <span class="absolute -top-0.5 -right-0.5 bg-accent text-foreground text-[9px] w-4.5 h-4.5 rounded-full flex items-center justify-center font-bold px-1 border border-background">
+                        {{ cart_count }}
+                    </span>
+                </a>
+                
+                <!-- Mobile Menu Hamburger -->
+                <button id="open-mobile-menu" class="md:hidden text-foreground hover:text-primary transition-colors focus:outline-none ml-1">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Horizontal Categories Subnav -->
+        <nav class="max-w-7xl mx-auto px-6 sm:px-10 pb-4 flex gap-8 text-[11px] uppercase tracking-[0.3em] text-muted-foreground overflow-x-auto select-none">
+            <a href="{% url 'store' %}" class="whitespace-nowrap hover:text-primary transition-colors">
+                New In
+            </a>
+            {% for cat in links %}
+            <a href="{{ cat.get_url }}" class="whitespace-nowrap hover:text-primary transition-colors">
+                {{ cat.category_name }}
+            </a>
+            {% endfor %}
+        </nav>
+    </header>
+
+    <!-- Mobile Search Bar (Hidden by default) -->
+    <div id="mobile-search-bar" class="hidden md:hidden border-b border-border/60 bg-white px-6 py-3 fixed top-[72px] sm:top-[88px] left-0 w-full z-50 shadow-md">
+        <form action="{% url 'search' %}" method="GET" class="flex items-center border border-border/80 bg-background focus-within:border-foreground transition-colors shadow-sm w-full">
+            <input id="mobile-search-input" type="text" name="keyword" placeholder="Search products..." class="flex-1 bg-transparent px-4 py-2 text-sm focus:outline-none placeholder:text-muted-foreground/45 text-foreground w-full">
+            <button type="submit" class="px-4 py-2 text-muted-foreground hover:text-primary transition-colors">
+                <i class="fa-solid fa-magnifying-glass text-sm"></i>
+            </button>
+        </form>
+    </div>
+
+    <!-- Hero Header section -->
+    <section class="max-w-7xl mx-auto w-full px-6 sm:px-10 pt-12 pb-10">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 select-none">
+            <div>
+                <p class="text-[11px] uppercase tracking-[0.35em] text-accent mb-4 flex items-center gap-2 font-bold">
+                    <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> ALMOST YOURS
+                </p>
+                <h1 class="font-serif text-5xl sm:text-6xl leading-[1.02] tracking-tight text-foreground">
+                    Your <em class="text-primary font-serif italic font-light">details</em>.
+                </h1>
+                <p class="mt-4 max-w-md text-muted-foreground leading-relaxed text-sm sm:text-base">
+                    Please provide your delivery address below. We'll handle packaging and dispatch with great care.
+                </p>
+            </div>
+            <!-- Progress Steps (Active at Step 2) -->
+            <div class="flex items-center gap-6 text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-muted-foreground font-semibold">
+                <a href="{% url 'cart' %}" class="hover:text-foreground transition-colors">01 · Bag</a>
+                <span class="w-8 h-px bg-border/60"></span>
+                <span class="text-foreground">02 · Address</span>
+                <span class="w-8 h-px bg-border/60"></span>
+                <span>03 · Pay</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl mx-auto w-full px-6 sm:px-10 pb-24">
+        
+        <!-- Order Form Submission -->
+        <form id="discount-form-checkout" action="{% url 'apply_discount' %}" method="POST">
+            {% csrf_token %}
+        </form>
+        <form action="{% url 'place_order' %}" method="POST">
+            {% csrf_token %}
+            
+            <div class="grid lg:grid-cols-[1fr_400px] gap-10 items-start">
+                
+                <!-- Billing Address Form Column -->
+                <!-- Billing Address Section -->
+                <section class="space-y-8 select-none">
+                    
+                    <div class="flex items-center justify-between border-b border-border/40 pb-4">
+                        <h2 class="font-serif text-3xl tracking-tight text-foreground">
+                            Billing Address
+                        </h2>
+                    </div>
+
+                    <!-- Form validation error checks -->
+                    {% if form.errors %}
+                    <div class="bg-rose-50 border border-rose-200 text-rose-800 p-4 text-xs font-medium space-y-1 shadow-xs">
+                        <strong class="block text-sm">Please correct the following errors:</strong>
+                        <ul class="list-disc pl-4 space-y-0.5">
+                            {% for field, errors in form.errors.items %}
+                                <li>{{ field|capfirst }}: {{ errors.0 }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <!-- Address Cards Grid -->
+                    <div class="grid sm:grid-cols-2 gap-4" id="address-cards-container">
+                        
+                        <!-- Default Profile Address Card -->
+                        {% if userprofile and userprofile.address_line_1 %}
+                        <div class="address-card cursor-pointer bg-white border-2 border-border/60 hover:border-primary p-5 shadow-xs transition-colors relative" 
+                             onclick="selectAddress(this, '{{ user.first_name }}', '{{ user.last_name }}', '{{ user.email }}', '{{ user.phone_number }}', '{{ userprofile.address_line_1|escapejs }}', '{{ userprofile.address_line_2|escapejs }}', '{{ userprofile.city|escapejs }}', '{{ userprofile.state|escapejs }}', '{{ userprofile.country|escapejs }}')">
+                            <div class="absolute top-4 right-4 text-primary hidden check-icon"><i class="fa-solid fa-circle-check text-lg"></i></div>
+                            <span class="inline-block bg-primary text-white text-[9px] uppercase tracking-[0.2em] px-2 py-1 font-bold mb-3">Default</span>
+                            <h4 class="font-serif text-lg font-bold">{{ user.first_name }} {{ user.last_name }}</h4>
+                            <p class="text-sm text-muted-foreground mt-2 leading-relaxed">
+                                {{ userprofile.address_line_1 }}<br>
+                                {% if userprofile.address_line_2 %}{{ userprofile.address_line_2 }}<br>{% endif %}
+                                {{ userprofile.city }}, {{ userprofile.state }}, {{ userprofile.country }}
+                            </p>
+                        </div>
+                        {% endif %}
+
+                        <!-- Saved Addresses Cards -->
+                        {% for address in saved_addresses %}
+                        <div class="address-card cursor-pointer bg-white border-2 border-border/60 hover:border-primary p-5 shadow-xs transition-colors relative"
+                             onclick="selectAddress(this, '{{ address.first_name|escapejs }}', '{{ address.last_name|escapejs }}', '{{ address.email|escapejs }}', '{{ address.phone|escapejs }}', '{{ address.address_line_1|escapejs }}', '{{ address.address_line_2|escapejs }}', '{{ address.city|escapejs }}', '{{ address.state|escapejs }}', '{{ address.country|escapejs }}')">
+                            <div class="absolute top-4 right-4 text-primary hidden check-icon"><i class="fa-solid fa-circle-check text-lg"></i></div>
+                            <span class="inline-block bg-secondary text-foreground text-[9px] uppercase tracking-[0.2em] px-2 py-1 font-bold mb-3">Saved</span>
+                            <h4 class="font-serif text-lg font-bold">{{ address.first_name }} {{ address.last_name }}</h4>
+                            <p class="text-sm text-muted-foreground mt-2 leading-relaxed">
+                                {{ address.address_line_1 }}<br>
+                                {% if address.address_line_2 %}{{ address.address_line_2 }}<br>{% endif %}
+                                {{ address.city }}, {{ address.state }}, {{ address.country }}
+                            </p>
+                        </div>
+                        {% endfor %}
+
+                        <!-- Add New Address Card -->
+                        <div class="cursor-pointer bg-secondary/30 border-2 border-dashed border-border hover:border-primary p-5 shadow-xs transition-colors flex flex-col items-center justify-center text-center min-h-[180px]"
+                             onclick="showNewAddressForm()">
+                            <i class="fa-solid fa-plus text-2xl text-muted-foreground mb-3"></i>
+                            <h4 class="font-serif text-lg font-bold text-foreground">Add New Address</h4>
+                        </div>
+                    </div>
+
+                    <!-- Hidden/Visible Form for Details -->
+                    <div id="address-form-section" class="bg-white border border-border/60 p-8 sm:p-10 shadow-xs space-y-8 {% if saved_addresses or userprofile.address_line_1 %}hidden{% endif %}">
+                        <div class="flex items-center justify-between border-b border-border/40 pb-4">
+                            <h3 class="font-serif text-2xl tracking-tight text-foreground">
+                                Delivery Details
+                            </h3>
+                            {% if saved_addresses or userprofile.address_line_1 %}
+                            <button type="button" onclick="hideNewAddressForm()" class="text-muted-foreground hover:text-foreground transition-colors">
+                                <i class="fa-solid fa-times text-lg"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+
+                        <!-- Names Row -->
+                        <div class="grid sm:grid-cols-2 gap-8">
+                            <label class="block">
+                                <span class="block text-[10.5px] uppercase tracking-[0.3em] text-muted-foreground font-bold mb-1">First Name</span>
+                                <input type="text" name="first_name" id="id_first_name" value="{{ form.first_name.value|default:user.first_name }}" required>
+                            </label>
+                            <label class="block">
+                                <span class="block text-[10.5px] uppercase tracking-[0.3em] text-muted-foreground font-bold mb-1">Last Name</span>
+                                <input type="text" name="last_name" id="id_last_name" value="{{ form.last_name.value|default:user.last_name }}" required>
+                            </label>
+                        </div>
+
+                        <!-- Email & Phone Row -->
+                        <div class="grid sm:grid-cols-2 gap-8">
+                            <label class="block">
+                                <span class="block text-[10.5px] uppercase tracking-[0.3em] text-muted-foreground font-bold mb-1">Email Address</span>
+                                <input type="email" name="email" id="id_email" value="{{ form.email.value|default:user.email }}" required>
+                            </label>
+                            <label class="block">
+                                <span class="block text-[10.5px] uppercase tracking-[0.3em] text-muted-foreground font-bold mb-1">Phone Number</span>
+                                <input type="text" name="phone" id="id_phone" value="{{ form.phone.value|default:user.phone_number }}" required>
+                            </label>
+                        </div>
+
+                        <!-- Addresses line -->
+                        <div class="space-y-6">
+                            <label class="block">
+                                <span class="block text-[10.5px] uppercase tracking-[0.3em] text-muted-foreground font-bold mb-1">Address Line 1</span>
+                                <input type="text" name="address_line_1" id="id_address_line_1" value="{{ form.address_line_1.value|default:'' }}" required>
+                            </label>
+                            <label class="block">
+                                <span class="block text-[10.5px] uppercase tracking-[0.3em] text-muted-foreground font-bold mb-1">Address Line 2 <span class="text-muted-foreground/50 font-normal lowercase italic">(optional)</span></span>
+                                <input type="text" name="address_line_2" id="id_address_line_2" value="{{ form.address_line_2.value|default:'' }}">
+                            </label>
+                        </div>
+
+                        <!-- City, State, Country -->
+                        <div class="grid sm:grid-cols-3 gap-6">
+                            <label class="block">
+                                <span class="block text-[10.5px] uppercase tracking-[0.3em] text-muted-foreground font-bold mb-1">City</span>
+                                <input type="text" name="city" id="id_city" value="{{ form.city.value|default:'' }}" required>
+                            </label>
+                            <label class="block">
+                                <span class="block text-[10.5px] uppercase tracking-[0.3em] text-muted-foreground font-bold mb-1">State</span>
+                                <input type="text" name="state" id="id_state" value="{{ form.state.value|default:'' }}" required>
+                            </label>
+                            <label class="block">
+                                <span class="block text-[10.5px] uppercase tracking-[0.3em] text-muted-foreground font-bold mb-1">Country</span>
+                                <input type="text" name="country" id="id_country" value="{{ form.country.value|default:'' }}" required>
+                            </label>
+                        </div>
+
+                        <!-- Order Note -->
+                        <label class="block">
+                            <span class="block text-[10.5px] uppercase tracking-[0.3em] text-muted-foreground font-bold mb-1">Order Notes <span class="text-muted-foreground/50 font-normal lowercase italic">(optional)</span></span>
+                            <textarea name="order_note" id="id_order_note" rows="2" placeholder="Special delivery details, etc...">{{ form.order_note.value|default:'' }}</textarea>
+                        </label>
+
+                        <!-- Save Address Checkbox -->
+                        <div class="pt-6 border-t border-border/40">
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <div class="relative flex items-center justify-center w-5 h-5 border-2 border-border/80 group-hover:border-primary transition-colors bg-white">
+                                    <input type="checkbox" name="save_address" value="True" class="peer absolute opacity-0 w-full h-full cursor-pointer">
+                                    <i class="fa-solid fa-check text-primary text-[10px] opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+                                </div>
+                                <span class="text-sm text-foreground font-medium select-none">Save this address for future orders</span>
+                            </label>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Order items & Grand totals summary sidebar -->
+                <aside class="lg:sticky lg:top-24 h-fit space-y-5">
+                    
+                    <div class="bg-white border border-border/60 p-7 shadow-xs">
+                        <p class="text-[9.5px] uppercase tracking-[0.35em] text-muted-foreground font-bold select-none">ORDER ITEMS</p>
+                        <h3 class="mt-2 font-serif text-3xl tracking-tight text-foreground select-none mb-6">Review Bag</h3>
+
+                        <!-- Minimalist product lists -->
+                        <ul class="divide-y divide-border/60 border-y border-border/60 max-h-72 overflow-y-auto mb-6 pr-2">
+                            {% for cart_item in cart_items %}
+                                <li class="py-4 flex gap-4 items-center">
+                                    <div class="relative w-16 h-20 bg-white border border-border/40 overflow-hidden shrink-0 flex items-center justify-center">
+                                        <img src="{{ cart_item.product.images.url }}" alt="{{ cart_item.product.product_name }}" class="w-full h-full object-cover">
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <h4 class="font-serif text-lg text-foreground truncate leading-tight">{{ cart_item.product.product_name }}</h4>
+                                        <p class="text-[11px] text-muted-foreground font-medium mt-1">
+                                            Qty: <span class="text-foreground font-bold">{{ cart_item.quantity }}</span>
+                                            {% if cart_item.variations.all %}
+                                                <span class="mx-1.5 text-muted-foreground/35">|</span>
+                                                {% for item in cart_item.variations.all %}
+                                                    {{ item.variation_value|capfirst }}{% if not forloop.last %}, {% endif %}
+                                                {% endfor %}
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                    <p class="font-serif text-lg text-foreground font-semibold shrink-0">₹{{ cart_item.sub_total }}</p>
+                                </li>
+                            {% endfor %}
+                        </ul>
+
+                        <div class="mb-6 border-b border-border/60 pb-5 text-sm space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-muted-foreground">Subtotal</span>
+                                <span class="font-medium">₹{{ total }}</span>
+                            </div>
+                            {% if discount_amount %}
+                            <div class="flex justify-between text-emerald-700">
+                                <span>Discount{% if discount_code %} ({{ discount_code }}){% endif %}</span>
+                                <span class="font-bold">-₹{{ discount_amount }}</span>
+                            </div>
+                            {% endif %}
+                            <div class="flex justify-between">
+                                <span class="text-muted-foreground">Tax</span>
+                                <span class="font-medium">₹{{ tax }}</span>
+                            </div>
+                            <div class="flex justify-between items-baseline pt-2">
+                                <span class="font-serif text-xl text-foreground">Total</span>
+                                <span class="font-serif text-2xl text-primary font-bold">₹{{ grand_total }}</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-5 flex gap-2">
+                            <input form="discount-form-checkout" type="text" name="discount_code" value="{{ discount_code|default:promotion_offer.code }}" class="min-w-0 flex-1 border border-border/80 bg-white px-3 py-2.5 text-xs uppercase tracking-[0.2em] focus:outline-none focus:border-foreground" aria-label="Discount code">
+                            <button form="discount-form-checkout" type="submit" class="border border-primary bg-primary text-white px-4 py-2.5 text-[10px] uppercase tracking-[0.2em] hover:bg-foreground hover:border-foreground transition-colors">Apply</button>
+                        </div>
+
+                        <!-- CTA Order Actions -->
+                        <button type="submit" name="submit" class="w-full bg-primary text-white py-4.5 text-[11px] uppercase tracking-[0.3em] hover:bg-foreground transition-colors duration-300 shadow-sm font-semibold inline-flex items-center justify-center gap-2 select-none" style="padding-top: 1.125rem; padding-bottom: 1.125rem;">
+                            Place Order <i class="fa-solid fa-arrow-up-right text-[10px]"></i>
+                        </button>
+
+                        <a href="{% url 'store' %}" class="mt-3 block text-center w-full border border-border/80 bg-white py-3.5 text-[11px] uppercase tracking-[0.3em] hover:border-foreground transition-colors duration-300 shadow-xs font-semibold select-none">
+                            Continue Shopping
+                        </a>
+
+                        <!-- Payment icons -->
+                        <div class="mt-6 flex items-center justify-center gap-4 text-[9.5px] uppercase tracking-[0.25em] text-muted-foreground/60 font-semibold select-none border-t border-border/40 pt-6">
+                            <span>Visa</span><span>·</span><span>Mastercard</span><span>·</span><span>Amex</span><span>·</span><span>PayPal</span>
+                        </div>
+                    </div>
+
+                    <!-- Editorial secure badges column -->
+                    <div class="bg-white border border-border/60 p-6 shadow-xs select-none space-y-4">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-truck-flatbed text-base text-primary"></i>
+                            <div class="text-xs">
+                                <p class="font-bold text-foreground uppercase tracking-wide text-[10px]">Free shipping</p>
+                                <p class="text-muted-foreground">On orders over ₹250</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-shield-halved text-base text-primary"></i>
+                            <div class="text-xs">
+                                <p class="font-bold text-foreground uppercase tracking-wide text-[10px]">Secure Checkout</p>
+                                <p class="text-muted-foreground">Encrypted payments end-to-end</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </aside>
+
+            </div>
+            
+        </form>
+
+    </main>
+
+    <!-- Editorial Footer -->
+    <footer class="border-t border-border/60 bg-card/45 mt-auto select-none">
+        <div class="max-w-7xl mx-auto px-6 sm:px-10 py-10 flex flex-col sm:flex-row justify-between gap-6 text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-muted-foreground items-center">
+            
+            <div class="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
+                <a href="/" class="font-serif leading-none text-base tracking-tight select-none">
+                    <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+                </a>
+                <span class="text-muted-foreground/60 font-sans">— Your premier fashion & lifestyle store</span>
+            </div>
+            
+            <div class="flex gap-6 font-medium">
+                <a href="{% url 'help' %}" class="hover:text-foreground transition-colors">Help</a>
+                <a href="{% url 'shipping' %}" class="hover:text-foreground transition-colors">Shipping</a>
+                <a href="{% url 'returns' %}" class="hover:text-foreground transition-colors">Returns</a>
+                <a href="{% url 'privacy' %}" class="hover:text-foreground transition-colors">Privacy</a>
+                <a href="{% url 'terms' %}" class="hover:text-foreground transition-colors">Terms</a>
+            </div>
+            
+        </div>
+    </footer>
+
+    <!-- Mobile Navigation Menu Drawer -->
+    <div id="mobile-menu-wrapper" class="fixed inset-0 z-[100] overflow-hidden hidden" aria-modal="true" role="dialog">
+        <!-- Backdrop -->
+        <div id="mobile-menu-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-xs transition-opacity duration-300 opacity-0"></div>
+        
+        <!-- Drawer Panel -->
+        <div id="mobile-menu-panel" class="absolute top-0 right-0 h-full w-[80%] max-w-[320px] bg-background shadow-2xl border-l border-border/40 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col z-[101]">
+            
+            <!-- Drawer Header -->
+            <div class="flex items-center justify-between px-6 py-5 border-b border-border/60 select-none">
+                <span class="font-serif text-lg tracking-wider uppercase text-foreground">Menu</span>
+                <button id="close-mobile-menu" class="text-muted-foreground hover:text-foreground transition-colors p-1" aria-label="Close menu">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <!-- Drawer Scrollable Content -->
+            <div class="flex-1 overflow-y-auto py-6 select-none flex flex-col gap-6">
+                
+                <!-- Links -->
+                <nav class="flex flex-col px-6 gap-4 text-[11px] uppercase tracking-[0.25em] font-semibold text-muted-foreground">
+                    <a href="{% url 'store' %}" class="hover:text-primary transition-colors py-2">Store</a>
+                    {% for cat in links %}
+                        <a href="{{ cat.get_url }}" class="hover:text-primary transition-colors py-2">{{ cat.category_name }}</a>
+                    {% endfor %}
+                </nav>
+                
+                <hr class="border-border/60 mx-6">
+                
+                <!-- Auth / User -->
+                <div class="px-6 flex flex-col gap-4 text-[11px] uppercase tracking-[0.25em] font-semibold">
+                    {% if user.id is None %}
+                        <a href="{% url 'login' %}" class="text-foreground hover:text-primary transition-colors py-2">Sign in</a>
+                        <a href="{% url 'register' %}" class="text-foreground hover:text-primary transition-colors py-2">Register</a>
+                    {% else %}
+                        <div class="text-muted-foreground/60 mb-2 normal-case tracking-normal text-xs">Signed in as <span class="font-bold text-foreground">{{ user.first_name }}</span></div>
+                        <a href="{% url 'dashboard' %}" class="text-foreground hover:text-primary transition-colors py-2">Dashboard</a>
+                        <a href="{% url 'logout' %}" class="text-rose-600 hover:text-rose-800 transition-colors py-2">Sign out</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for Address Cards -->
+    <script>
+        function selectAddress(cardElement, firstName, lastName, email, phone, addr1, addr2, city, state, country) {
+            // Highlight selected card
+            document.querySelectorAll('.address-card').forEach(card => {
+                card.classList.remove('border-primary', 'bg-primary/5');
+                card.classList.add('border-border/60', 'bg-white');
+                card.querySelector('.check-icon').classList.add('hidden');
+            });
+            
+            cardElement.classList.remove('border-border/60', 'bg-white');
+            cardElement.classList.add('border-primary', 'bg-primary/5');
+            cardElement.querySelector('.check-icon').classList.remove('hidden');
+
+            // Fill hidden form
+            document.getElementById('id_first_name').value = firstName;
+            document.getElementById('id_last_name').value = lastName;
+            document.getElementById('id_email').value = email;
+            document.getElementById('id_phone').value = phone;
+            document.getElementById('id_address_line_1').value = addr1;
+            document.getElementById('id_address_line_2').value = addr2;
+            document.getElementById('id_city').value = city;
+            document.getElementById('id_state').value = state;
+            document.getElementById('id_country').value = country;
+            
+            // Uncheck 'save address' since this is already saved
+            const saveCheck = document.querySelector('input[name="save_address"]');
+            if(saveCheck) saveCheck.checked = false;
+            
+            hideNewAddressForm();
+        }
+
+        function showNewAddressForm() {
+            // Deselect all cards
+            document.querySelectorAll('.address-card').forEach(card => {
+                card.classList.remove('border-primary', 'bg-primary/5');
+                card.classList.add('border-border/60', 'bg-white');
+                card.querySelector('.check-icon').classList.add('hidden');
+            });
+
+            // Clear form address fields
+            document.getElementById('id_address_line_1').value = '';
+            document.getElementById('id_address_line_2').value = '';
+            document.getElementById('id_city').value = '';
+            document.getElementById('id_state').value = '';
+            document.getElementById('id_country').value = '';
+            
+            document.getElementById('address-form-section').classList.remove('hidden');
+        }
+
+        function hideNewAddressForm() {
+            const formSection = document.getElementById('address-form-section');
+            if(formSection) {
+                formSection.classList.add('hidden');
+            }
+        }
+
+        // Auto-select first card on load if exists
+        document.addEventListener("DOMContentLoaded", function() {
+            const firstCard = document.querySelector('.address-card');
+            const formSection = document.getElementById('address-form-section');
+            
+            if(firstCard && formSection && formSection.classList.contains('hidden')) {
+                firstCard.click();
+            }
+            
+            // Mobile Menu Drawer Logic
+            const menuWrapper = document.getElementById('mobile-menu-wrapper');
+            const menuBackdrop = document.getElementById('mobile-menu-backdrop');
+            const menuPanel = document.getElementById('mobile-menu-panel');
+            
+            const openMenuBtn = document.getElementById('open-mobile-menu');
+            const closeMenuBtn = document.getElementById('close-mobile-menu');
+            
+            function openMenu() {
+                if(!menuWrapper) return;
+                menuWrapper.classList.remove('hidden');
+                setTimeout(() => {
+                    menuBackdrop.classList.remove('opacity-0');
+                    menuBackdrop.classList.add('opacity-100');
+                    menuPanel.classList.remove('translate-x-full');
+                    menuPanel.classList.add('translate-x-0');
+                }, 10);
+            }
+            
+            function closeMenu() {
+                if(!menuWrapper) return;
+                menuBackdrop.classList.remove('opacity-100');
+                menuBackdrop.classList.add('opacity-0');
+                menuPanel.classList.remove('translate-x-0');
+                menuPanel.classList.add('translate-x-full');
+                
+                setTimeout(() => {
+                    menuWrapper.classList.add('hidden');
+                }, 300);
+            }
+            
+            if(openMenuBtn) openMenuBtn.addEventListener('click', openMenu);
+            if(closeMenuBtn) closeMenuBtn.addEventListener('click', closeMenu);
+            if(menuBackdrop) menuBackdrop.addEventListener('click', closeMenu);
+        });
+    </script>
+</body>
+</html>

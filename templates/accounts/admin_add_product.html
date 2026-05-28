@@ -1,0 +1,151 @@
+{% load static %}
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Add Product · Admin Dashboard</title>
+    
+    <link href="{% static 'image/nexuskartlogo-64x64.webp' %}" rel="shortcut-icon" sizes="64x64" type="image/webp">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Work+Sans:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: 'oklch(0.97 0.012 85)',
+                        foreground: 'oklch(0.18 0.025 160)',
+                        card: 'oklch(0.99 0.008 85)',
+                        primary: 'oklch(0.28 0.055 160)',
+                        secondary: 'oklch(0.93 0.015 85)',
+                        accent: 'oklch(0.72 0.115 80)',
+                        'muted-foreground': 'oklch(0.45 0.02 150)',
+                        border: 'oklch(0.85 0.012 85)',
+                        input: 'oklch(0.88 0.012 85)',
+                        destructive: 'oklch(0.52 0.18 28)'
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+                        sans: ['"Work Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                        mono: ['Courier New', 'Courier', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Work Sans', sans-serif; background-color: oklch(0.97 0.012 85); color: oklch(0.18 0.025 160); -webkit-font-smoothing: antialiased; }
+        .ambient-glow { position: absolute; border-radius: 9999px; filter: blur(120px); opacity: 0.15; z-index: 0; pointer-events: none; }
+    </style>
+</head>
+<body class="min-h-screen bg-background text-foreground flex flex-col relative overflow-x-hidden">
+
+    <div class="ambient-glow bg-primary w-[500px] h-[500px] -top-[200px] -left-[100px]"></div>
+
+    <!-- Django Static Messages System -->
+    {% if messages %}
+    <div class="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm">
+        {% for message in messages %}
+        <div class="bg-white border-l-4 {% if message.tags == 'error' %}border-destructive{% else %}border-primary{% endif %} px-5 py-4 shadow-lg flex items-start gap-4" role="alert">
+            <div class="flex-1">
+                <p class="text-xs uppercase tracking-widest text-muted-foreground">Notification</p>
+                <p class="text-sm font-semibold mt-0.5">{{ message }}</p>
+            </div>
+            <button onclick="this.parentElement.remove();" class="text-muted-foreground/60 hover:text-foreground text-sm leading-none">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Top Navigation Header -->
+    <header class="border-b border-border/60 bg-background/80 backdrop-blur-sm sticky top-0 z-30 select-none">
+        <div class="max-w-7xl mx-auto px-6 sm:px-10 py-5 flex items-center justify-between gap-6">
+            <a href="/" class="font-serif leading-none text-2xl sm:text-3xl tracking-tight select-none">
+                <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+            </a>
+            <div class="flex-1"></div>
+            <div class="flex items-center gap-4">
+                <a href="{% url 'admin_manage_inventory' %}" class="inline-flex items-center gap-2 border border-border bg-card px-4 py-2 text-[11px] uppercase tracking-[0.25em] hover:border-foreground hover:bg-secondary/20 transition-all font-semibold select-none">
+                    <i class="fa-solid fa-arrow-left text-[10px]"></i> Back to Inventory
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="flex-1 max-w-3xl mx-auto px-6 sm:px-10 py-12 w-full relative z-10">
+        <div class="mb-8">
+            <p class="text-[10px] uppercase tracking-[0.3em] text-accent font-bold">INVENTORY OPERATIONS</p>
+            <h2 class="font-serif text-4xl text-foreground font-bold mt-1">Add New Product</h2>
+            <p class="text-sm text-muted-foreground mt-2">Enter the details below to add a new product to your catalog.</p>
+        </div>
+
+        <div class="bg-card border border-border shadow-xs p-8">
+            <form action="{% url 'admin_add_product' %}" method="POST" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Product Name -->
+                    <div class="space-y-2 md:col-span-2">
+                        <label for="product_name" class="block text-xs uppercase tracking-[0.2em] font-bold text-muted-foreground">Product Name <span class="text-destructive">*</span></label>
+                        <input type="text" name="product_name" id="product_name" required class="w-full px-4 py-3 border border-border bg-background focus:outline-none focus:border-primary text-sm transition-colors">
+                    </div>
+
+                    <!-- Price -->
+                    <div class="space-y-2">
+                        <label for="price" class="block text-xs uppercase tracking-[0.2em] font-bold text-muted-foreground">Price (₹) <span class="text-destructive">*</span></label>
+                        <input type="number" name="price" id="price" required min="0" class="w-full px-4 py-3 border border-border bg-background focus:outline-none focus:border-primary text-sm transition-colors">
+                    </div>
+
+                    <!-- Stock -->
+                    <div class="space-y-2">
+                        <label for="stock" class="block text-xs uppercase tracking-[0.2em] font-bold text-muted-foreground">Initial Stock <span class="text-destructive">*</span></label>
+                        <input type="number" name="stock" id="stock" required min="0" class="w-full px-4 py-3 border border-border bg-background focus:outline-none focus:border-primary text-sm transition-colors">
+                    </div>
+
+                    <!-- Category -->
+                    <div class="space-y-2 md:col-span-2">
+                        <label for="category" class="block text-xs uppercase tracking-[0.2em] font-bold text-muted-foreground">Category <span class="text-destructive">*</span></label>
+                        <select name="category" id="category" required class="w-full px-4 py-3 border border-border bg-background focus:outline-none focus:border-primary text-sm transition-colors appearance-none cursor-pointer">
+                            <option value="" disabled selected>Select a category...</option>
+                            {% for c in categories %}
+                            <option value="{{ c.id }}">{{ c.category_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="space-y-2 md:col-span-2">
+                        <label for="description" class="block text-xs uppercase tracking-[0.2em] font-bold text-muted-foreground">Description</label>
+                        <textarea name="description" id="description" rows="4" class="w-full px-4 py-3 border border-border bg-background focus:outline-none focus:border-primary text-sm transition-colors"></textarea>
+                    </div>
+
+                    <!-- Image Upload -->
+                    <div class="space-y-2 md:col-span-2">
+                        <label for="images" class="block text-xs uppercase tracking-[0.2em] font-bold text-muted-foreground">Product Image <span class="text-destructive">*</span></label>
+                        <input type="file" name="images" id="images" required accept="image/*" class="w-full px-4 py-2 border border-border bg-background focus:outline-none focus:border-primary text-sm transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-xs file:uppercase file:tracking-[0.1em] file:font-bold file:bg-secondary file:text-foreground hover:file:bg-border cursor-pointer">
+                    </div>
+
+                    <!-- Is Available -->
+                    <div class="space-y-2 md:col-span-2 flex items-center gap-3 pt-4 border-t border-border/60">
+                        <input type="checkbox" name="is_available" id="is_available" checked class="w-4 h-4 text-primary bg-background border-border focus:ring-primary cursor-pointer">
+                        <label for="is_available" class="block text-xs uppercase tracking-[0.2em] font-bold text-muted-foreground cursor-pointer select-none">Product is available for purchase</label>
+                    </div>
+                </div>
+
+                <div class="pt-6 flex justify-end">
+                    <button type="submit" class="inline-flex items-center gap-2 px-8 py-3.5 text-xs uppercase tracking-[0.2em] font-bold bg-primary text-white hover:opacity-90 transition-opacity shadow-lg rounded-sm">
+                        <i class="fa-solid fa-plus"></i> Add Product
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</body>
+</html>

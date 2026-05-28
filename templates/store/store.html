@@ -1,0 +1,711 @@
+{% load static %}
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Nexuskart — Our Collections</title>
+    
+    <link href="{% static 'image/nexuskartlogo-64x64.webp' %}" rel="shortcut-icon" sizes="64x64" type="image/webp">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Work+Sans:wght@100..900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: 'oklch(0.97 0.012 85)',
+                        foreground: 'oklch(0.18 0.025 160)',
+                        card: 'oklch(0.99 0.008 85)',
+                        primary: 'oklch(0.28 0.055 160)',
+                        secondary: 'oklch(0.93 0.015 85)',
+                        accent: 'oklch(0.72 0.115 80)',
+                        'muted-foreground': 'oklch(0.45 0.02 150)',
+                        border: 'oklch(0.85 0.012 85)',
+                        input: 'oklch(0.88 0.012 85)',
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+                        sans: ['"Work Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background-color: oklch(0.97 0.012 85);
+            color: oklch(0.18 0.025 160);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Customize scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: oklch(0.85 0.012 85);
+            border-radius: 3px;
+        }
+    </style>
+<!-- Include jQuery since we use AJAX for wishlist toggling -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body class="min-h-screen bg-background text-foreground flex flex-col">
+
+    <!-- Main Navigation Header -->
+    <header class="sticky top-0 border-b border-border/60 bg-background z-40">
+        <div class="max-w-7xl mx-auto px-6 sm:px-10 py-5 flex items-center justify-between md:justify-start gap-8">
+            
+            <!-- Branding Wordmark Logo -->
+            <a href="/" class="font-serif leading-none text-2xl sm:text-3xl tracking-tight select-none">
+                <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+            </a>
+
+            <!-- Search & Filter Trigger Block (Clean, well-spaced, redundant header dropdowns completely removed) -->
+            <div class="hidden md:flex items-center gap-4 flex-1 max-w-3xl">
+                <!-- Search Input Form -->
+                <form action="{% url 'search' %}" method="GET" class="flex-1 flex items-center border border-border/80 bg-white focus-within:border-foreground transition-colors shadow-sm">
+                    <input
+                        type="text"
+                        name="keyword"
+                        placeholder="Search drops, labels, or essentials…"
+                        class="flex-1 bg-transparent px-4 py-2.5 text-sm focus:outline-none placeholder:text-muted-foreground/45 text-foreground"
+                        value="{{ request.GET.keyword|default:'' }}"
+                    />
+                    <button type="submit" class="px-4 py-2.5 text-muted-foreground hover:text-primary transition-colors">
+                        <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                    </button>
+                </form>
+
+                <!-- Filter Drawer Trigger Button next to Search (Spacious outline styling) -->
+                <button id="open-filter-drawer" class="border border-border/80 bg-white px-5 py-2.5 text-[11px] uppercase tracking-[0.25em] hover:border-foreground transition-colors flex items-center gap-2.5 duration-300 shadow-sm whitespace-nowrap">
+                    <i class="fa-solid fa-sliders text-[10px]"></i> Filter
+                </button>
+            </div>
+
+            <!-- Right-aligned Actions Panel -->
+            <div class="flex items-center gap-6 ml-auto">
+                <!-- Welcome & Guest authentication widget -->
+                <div class="hidden sm:block text-right text-[10px] uppercase tracking-[0.25em] select-none">
+                    {% if user.id is None %}
+                        <div class="text-muted-foreground">Welcome</div>
+                        <a href="{% url 'login' %}" class="text-foreground hover:text-primary transition-colors font-medium">
+                            Sign in <span class="text-muted-foreground/60">| Register</span>
+                        </a>
+                    {% else %}
+                        <div class="text-muted-foreground">Welcome, {{ user.first_name }}</div>
+                        <div class="flex gap-2 justify-end">
+                            <a href="{% url 'dashboard' %}" class="text-foreground hover:text-primary transition-colors font-medium">Dashboard</a>
+                            <span class="text-muted-foreground/60">|</span>
+                            <a href="{% url 'logout' %}" class="text-foreground hover:text-primary transition-colors font-medium">Sign out</a>
+                        </div>
+                    {% endif %}
+                </div>
+
+                                <!-- Mobile Search Toggle -->
+                <button onclick="document.getElementById('mobile-search-bar').classList.toggle('hidden'); document.getElementById('mobile-search-input').focus();" class="md:hidden relative p-2 text-foreground hover:text-primary transition-colors" aria-label="Toggle Search">
+                    <i class="fa-solid fa-magnifying-glass text-xl"></i>
+                </button>
+                
+                <!-- Wishlist link -->
+                <a href="{% url 'wishlist' %}" class="relative p-2 text-foreground hover:text-primary transition-colors" aria-label="Wishlist">
+                    <i class="fa-regular fa-heart text-xl"></i>
+                    {% if wishlist_count > 0 %}
+                    <span class="absolute -top-0.5 -right-0.5 bg-accent text-foreground text-[9px] w-4.5 h-4.5 rounded-full flex items-center justify-center font-bold px-1 border border-background">
+                        {{ wishlist_count }}
+                    </span>
+                    {% endif %}
+                </a>
+
+                <!-- Shopping Bag Cart Badge -->
+                <a href="{% url 'cart' %}" class="relative p-2 text-foreground hover:text-primary transition-colors" aria-label="Cart">
+                    <i class="fa-solid fa-bag-shopping text-xl"></i>
+                    <span class="absolute -top-0.5 -right-0.5 bg-accent text-foreground text-[9px] w-4.5 h-4.5 rounded-full flex items-center justify-center font-bold px-1 border border-background">
+                        {{ cart_count }}
+                    </span>
+                </a>
+
+                <!-- Mobile Menu Hamburger -->
+                <button id="open-mobile-menu" class="md:hidden text-foreground hover:text-primary transition-colors focus:outline-none ml-1">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Horizontal Categories Subnav -->
+        <nav class="max-w-7xl mx-auto px-6 sm:px-10 pb-4 flex gap-8 text-[11px] uppercase tracking-[0.3em] text-muted-foreground overflow-x-auto select-none">
+            <a href="{% url 'store' %}" class="whitespace-nowrap {% if not category %}text-foreground font-medium{% endif %} hover:text-primary transition-colors">
+                New In
+            </a>
+            {% for cat in links %}
+            <a href="{{ cat.get_url }}" class="whitespace-nowrap {% if category.slug == cat.slug %}text-foreground font-medium{% endif %} hover:text-primary transition-colors">
+                {{ cat.category_name }}
+            </a>
+            {% endfor %}
+        </nav>
+    </header>
+
+    <!-- Mobile Search Bar (Hidden by default) -->
+    <div id="mobile-search-bar" class="hidden md:hidden border-b border-border/60 bg-white px-6 py-3 fixed top-[72px] sm:top-[88px] left-0 w-full z-50 shadow-md">
+        <form action="{% url 'search' %}" method="GET" class="flex items-center border border-border/80 bg-background focus-within:border-foreground transition-colors shadow-sm w-full">
+            <input id="mobile-search-input" type="text" name="keyword" placeholder="Search products..." class="flex-1 bg-transparent px-4 py-2 text-sm focus:outline-none placeholder:text-muted-foreground/45 text-foreground w-full">
+            <button type="submit" class="px-4 py-2 text-muted-foreground hover:text-primary transition-colors">
+                <i class="fa-solid fa-magnifying-glass text-sm"></i>
+            </button>
+        </form>
+    </div>
+
+    <!-- Main Content Grid -->
+    <main class="flex-1 max-w-7xl mx-auto w-full px-6 sm:px-10 py-12">
+        <div class="mb-8">
+            {% include 'includes/promo_banner.html' %}
+        </div>
+        
+        <!-- Search Results / Section Heading -->
+        <div class="flex items-baseline justify-between mb-8 select-none">
+            <div>
+                <p class="text-[10px] sm:text-[11px] uppercase tracking-[0.35em] text-muted-foreground">Nexuskart Edit</p>
+                <h1 class="font-serif text-4xl sm:text-5xl tracking-tight text-foreground mt-2">
+                    {% if 'search' in request.path %}
+                        Search <em class="text-primary font-serif italic">Results</em>
+                    {% else %}
+                        Our <em class="text-primary font-serif italic">Store</em>
+                    {% endif %}
+                </h1>
+                <p class="text-xs text-muted-foreground mt-3 uppercase tracking-wider font-semibold">
+                    {{ product_count }} items found
+                </p>
+            </div>
+            
+            <!-- Mobile Filter Trigger -->
+            <button id="open-filter-drawer-mobile" class="md:hidden border border-border/80 bg-white px-4 py-2.5 text-[11px] uppercase tracking-[0.25em] hover:border-foreground transition-colors flex items-center gap-2 duration-300 shadow-sm">
+                <i class="fa-solid fa-sliders text-[10px]"></i> Filter
+            </button>
+        </div>
+
+        <!-- Active Filters Rectangle Tags Panel (SQUARISH, WHITE BG) -->
+        {% if active_filters %}
+        <div class="flex items-center gap-3 flex-wrap select-none mb-10">
+            <span class="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-medium">Active Filters:</span>
+            
+            {% for filter in active_filters %}
+            <a href="{{ filter.remove_url }}" class="inline-flex items-center gap-2 bg-white border border-border/80 py-1.5 px-3 rounded-none text-[10px] uppercase tracking-[0.15em] text-foreground hover:border-foreground transition-colors shadow-sm font-medium select-none">
+                {{ filter.label }} <i class="fa-solid fa-xmark text-[9px] text-muted-foreground/60 hover:text-foreground"></i>
+            </a>
+            {% endfor %}
+            
+            <!-- Red, borderless, text-only Clear All link -->
+            <a href="{% url 'store' %}" class="text-[10px] uppercase tracking-[0.2em] text-rose-600 hover:text-rose-800 transition-colors font-semibold border-none bg-transparent py-1 px-2 select-none">
+                Clear All
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Products Catalog Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+            {% if products %}
+                {% for product in products %}
+                <article class="group cursor-pointer">
+                    <!-- Image Card Container -->
+                    <div class="relative aspect-[4/5] bg-white border border-border/60 overflow-hidden mb-2.5 shadow-sm">
+                        <div class="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/10 group-hover:from-primary/8 group-hover:to-accent/20 transition-colors z-10"></div>
+                        
+                        <!-- Wishlist button -->
+                        <button class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center transition-colors border border-border/30 z-20 shadow-xs btn-toggle-wishlist {% if product.id in wishlist_product_ids %}text-primary{% else %}text-muted-foreground hover:text-primary{% endif %}" data-product-id="{{ product.id }}" aria-label="Toggle Wishlist">
+                            <i class="fa-heart text-xs {% if product.id in wishlist_product_ids %}fa-solid text-rose-500{% else %}fa-regular{% endif %}"></i>
+                        </button>
+                        
+                        <!-- Clothes Real Image Display -->
+                        <div class="absolute inset-0 flex items-center justify-center overflow-hidden">
+                            <img 
+                                src="{{ product.images.url }}" 
+                                alt="{{ product.product_name }}"
+                                class="w-full h-full object-cover group-hover:scale-103 transition-transform duration-700 ease-out"
+                            />
+                        </div>
+                        
+                        <!-- Rating Overlay Badge (Myntra Style: 4.5 ★ | 8) -->
+                        <div class="absolute bottom-3 left-3 bg-white/90 backdrop-blur px-2.5 py-1 border border-border/30 z-20 flex items-center gap-1.5 shadow-xs text-[10px] font-bold text-foreground select-none">
+                            <span>{{ product.averageReview|floatformat:1 }}</span>
+                            <i class="fa-solid fa-star text-[9px] text-teal-600"></i>
+                            <span class="text-muted-foreground/30 font-light">|</span>
+                            <span class="text-muted-foreground font-normal">{{ product.countReview }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Quick Add Button (Visible below the image at all times) -->
+                    <div class="mb-3 px-1">
+                        <a href="{{ product.get_url }}" class="block text-center w-full bg-primary text-white py-2.5 text-[10px] uppercase tracking-[0.3em] hover:bg-foreground transition-colors duration-300 shadow-sm font-semibold">
+                            Quick add
+                        </a>
+                    </div>
+
+                    <!-- Premium Text Details (Stacked vertically under the image) -->
+                    <div class="px-1 select-none">
+                        <!-- Category/Brand Line -->
+                        <div class="text-[9.5px] uppercase tracking-[0.25em] font-bold text-muted-foreground mb-1">
+                            {{ product.category.category_name }}
+                        </div>
+                        
+                        <!-- Product Title / Short Description -->
+                        <a href="{{ product.get_url }}" class="block font-serif text-[17px] leading-tight text-foreground hover:text-primary transition-colors line-clamp-1">
+                            {{ product.product_name }}
+                        </a>
+                        
+                        <!-- Price Line -->
+                        <div class="mt-1.5 text-xs">
+                            <span class="font-semibold text-foreground text-sm">₹{{ product.price }}</span>
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            {% else %}
+                <div class="col-span-full py-16 text-center select-none">
+                    <i class="fa-solid fa-store-slash text-4xl text-muted-foreground/30 mb-4 block"></i>
+                    <h2 class="font-serif text-2xl text-foreground">No Results Found.</h2>
+                    <p class="text-sm text-muted-foreground mt-2 max-w-sm mx-auto">Please check your keywords, filters, or try checking back later.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Premium Pagination Controls Bar (Backend Serialized Query parameters) -->
+        {% if products.has_other_pages %}
+        <nav class="flex items-center justify-center gap-1.5 select-none mt-16" aria-label="Catalog Navigation">
+            
+            <!-- Previous Page Trigger -->
+            {% if products.has_previous %}
+            <a href="?page={{ products.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}" class="flex items-center justify-center h-10 px-5 border border-border/80 bg-white hover:border-foreground hover:bg-foreground/5 text-foreground text-[10px] uppercase tracking-[0.2em] transition-all duration-300 shadow-sm font-semibold">
+                Prev
+            </a>
+            {% else %}
+            <span class="flex items-center justify-center h-10 px-5 border border-border/40 bg-white/50 text-muted-foreground/40 text-[10px] uppercase tracking-[0.2em] cursor-not-allowed pointer-events-none select-none">
+                Prev
+            </span>
+            {% endif %}
+            
+            <!-- Page Number list -->
+            {% for i in products.paginator.page_range %}
+                {% if products.number == i %}
+                <span class="flex items-center justify-center w-10 h-10 bg-primary text-white border border-primary text-[11px] font-bold shadow-sm">
+                    {{ i }}
+                </span>
+                {% else %}
+                <a href="?page={{ i }}{% if query_string %}&{{ query_string }}{% endif %}" class="flex items-center justify-center w-10 h-10 border border-border/80 bg-white hover:border-foreground hover:bg-foreground/5 text-foreground text-[11px] font-medium transition-all duration-300 shadow-sm">
+                    {{ i }}
+                </a>
+                {% endif %}
+            {% endfor %}
+            
+            <!-- Next Page Trigger -->
+            {% if products.has_next %}
+            <a href="?page={{ products.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}" class="flex items-center justify-center h-10 px-5 border border-border/80 bg-white hover:border-foreground hover:bg-foreground/5 text-foreground text-[10px] uppercase tracking-[0.2em] transition-all duration-300 shadow-sm font-semibold">
+                Next
+            </a>
+            {% else %}
+            <span class="flex items-center justify-center h-10 px-5 border border-border/40 bg-white/50 text-muted-foreground/40 text-[10px] uppercase tracking-[0.2em] cursor-not-allowed pointer-events-none select-none">
+                Next
+            </span>
+            {% endif %}
+            
+        </nav>
+        {% endif %}
+
+    </main>
+
+    <!-- Slide-Over Right-Side Filter Drawer overlay panel (40% width overlay) -->
+    <div id="filter-drawer-wrapper" class="fixed inset-0 z-50 overflow-hidden hidden" aria-modal="true" role="dialog">
+        <!-- Semi-transparent overlay backdrop -->
+        <div id="drawer-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-xs transition-opacity duration-300 opacity-0"></div>
+        
+        <!-- Drawer Panel -->
+        <div id="drawer-panel" class="absolute top-0 right-0 h-full w-full sm:w-[40%] min-w-[320px] max-w-[450px] bg-background shadow-2xl border-l border-border/40 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col z-50">
+            
+            <!-- Drawer Header -->
+            <div class="flex items-center justify-between px-6 py-5 border-b border-border/60 select-none">
+                <h2 class="font-serif text-lg tracking-wider uppercase text-foreground">Filters</h2>
+                <button id="close-filter-drawer" class="text-muted-foreground hover:text-foreground transition-colors p-1" aria-label="Close filters">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <!-- Drawer Scrollable Content -->
+            <div class="flex-1 overflow-y-auto px-6 py-6 select-none">
+                
+                <!-- Filter Drawer Active Form wrapper -->
+                <form id="drawer-filter-form" action="{{ request.path }}" method="GET" class="space-y-8">
+                    <!-- Preserve search queries if any -->
+                    {% if request.GET.keyword %}
+                    <input type="hidden" name="keyword" value="{{ request.GET.keyword }}">
+                    {% endif %}
+                
+                    
+                    <!-- Sort Selection -->
+                    <div class="px-6">
+                        <h3 class="text-[10px] uppercase tracking-[0.3em] text-muted-foreground font-semibold mb-4">Sort By</h3>
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <div class="relative flex items-center justify-center">
+                                    <input type="radio" name="sort" value="" class="peer sr-only" {% if not sort_by %}checked{% endif %}>
+                                    <div class="w-4 h-4 border border-border/80 rounded-full peer-checked:border-primary peer-checked:border-[5px] transition-all"></div>
+                                </div>
+                                <span class="text-xs text-muted-foreground group-hover:text-foreground transition-colors uppercase tracking-widest font-semibold">Recommended</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <div class="relative flex items-center justify-center">
+                                    <input type="radio" name="sort" value="newest" class="peer sr-only" {% if sort_by == 'newest' %}checked{% endif %}>
+                                    <div class="w-4 h-4 border border-border/80 rounded-full peer-checked:border-primary peer-checked:border-[5px] transition-all"></div>
+                                </div>
+                                <span class="text-xs text-muted-foreground group-hover:text-foreground transition-colors uppercase tracking-widest font-semibold">Newest</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <div class="relative flex items-center justify-center">
+                                    <input type="radio" name="sort" value="price_low" class="peer sr-only" {% if sort_by == 'price_low' %}checked{% endif %}>
+                                    <div class="w-4 h-4 border border-border/80 rounded-full peer-checked:border-primary peer-checked:border-[5px] transition-all"></div>
+                                </div>
+                                <span class="text-xs text-muted-foreground group-hover:text-foreground transition-colors uppercase tracking-widest font-semibold">Price: Low to High</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <div class="relative flex items-center justify-center">
+                                    <input type="radio" name="sort" value="price_high" class="peer sr-only" {% if sort_by == 'price_high' %}checked{% endif %}>
+                                    <div class="w-4 h-4 border border-border/80 rounded-full peer-checked:border-primary peer-checked:border-[5px] transition-all"></div>
+                                </div>
+                                <span class="text-xs text-muted-foreground group-hover:text-foreground transition-colors uppercase tracking-widest font-semibold">Price: High to Low</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <hr class="border-border/60 mx-6">
+                    <!-- Sizes modular checkbox selection triggers -->
+                    <div class="px-6">
+                        <h3 class="text-[10px] uppercase tracking-[0.3em] text-muted-foreground font-semibold mb-4">Sizes</h3>
+                        <div class="flex flex-wrap gap-2">
+                            <label class="cursor-pointer">
+                                <input type="checkbox" name="size" value="XS" class="sr-only peer" {% if 'XS' in selected_sizes %}checked{% endif %} />
+                                <span class="inline-block border border-border/80 bg-white text-[10px] uppercase tracking-wider text-foreground peer-checked:bg-primary peer-checked:text-white peer-checked:border-transparent px-4 py-2 hover:border-foreground transition-all select-none">XS</span>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="checkbox" name="size" value="SM" class="sr-only peer" {% if 'SM' in selected_sizes %}checked{% endif %} />
+                                <span class="inline-block border border-border/80 bg-white text-[10px] uppercase tracking-wider text-foreground peer-checked:bg-primary peer-checked:text-white peer-checked:border-transparent px-4 py-2 hover:border-foreground transition-all select-none">SM</span>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="checkbox" name="size" value="LG" class="sr-only peer" {% if 'LG' in selected_sizes %}checked{% endif %} />
+                                <span class="inline-block border border-border/80 bg-white text-[10px] uppercase tracking-wider text-foreground peer-checked:bg-primary peer-checked:text-white peer-checked:border-transparent px-4 py-2 hover:border-foreground transition-all select-none">LG</span>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="checkbox" name="size" value="XXL" class="sr-only peer" {% if 'XXL' in selected_sizes %}checked{% endif %} />
+                                <span class="inline-block border border-border/80 bg-white text-[10px] uppercase tracking-wider text-foreground peer-checked:bg-primary peer-checked:text-white peer-checked:border-transparent px-4 py-2 hover:border-foreground transition-all select-none">XXL</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <hr class="border-border/60 mx-6">
+                    
+                    <!-- Colors selection -->
+                    <div class="px-6">
+                        <h3 class="text-[10px] uppercase tracking-[0.3em] text-muted-foreground font-semibold mb-4">Colors</h3>
+                        <div class="flex flex-wrap gap-3">
+                            <label class="cursor-pointer flex items-center gap-2 group">
+                                <div class="relative flex items-center justify-center">
+                                    <input type="checkbox" name="color" value="Black" class="peer sr-only" {% if 'Black' in selected_colors %}checked{% endif %} />
+                                    <div class="w-5 h-5 border border-border/80 rounded-sm peer-checked:bg-primary peer-checked:border-primary transition-all flex items-center justify-center">
+                                        <i class="fa-solid fa-check text-[10px] text-white opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+                                    </div>
+                                </div>
+                                <span class="text-[11px] uppercase tracking-widest text-muted-foreground group-hover:text-foreground transition-colors font-medium select-none">Black</span>
+                            </label>
+                            
+                            <label class="cursor-pointer flex items-center gap-2 group">
+                                <div class="relative flex items-center justify-center">
+                                    <input type="checkbox" name="color" value="White" class="peer sr-only" {% if 'White' in selected_colors %}checked{% endif %} />
+                                    <div class="w-5 h-5 border border-border/80 rounded-sm peer-checked:bg-primary peer-checked:border-primary transition-all flex items-center justify-center">
+                                        <i class="fa-solid fa-check text-[10px] text-white opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+                                    </div>
+                                </div>
+                                <span class="text-[11px] uppercase tracking-widest text-muted-foreground group-hover:text-foreground transition-colors font-medium select-none">White</span>
+                            </label>
+                            
+                            <label class="cursor-pointer flex items-center gap-2 group">
+                                <div class="relative flex items-center justify-center">
+                                    <input type="checkbox" name="color" value="Red" class="peer sr-only" {% if 'Red' in selected_colors %}checked{% endif %} />
+                                    <div class="w-5 h-5 border border-border/80 rounded-sm peer-checked:bg-primary peer-checked:border-primary transition-all flex items-center justify-center">
+                                        <i class="fa-solid fa-check text-[10px] text-white opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+                                    </div>
+                                </div>
+                                <span class="text-[11px] uppercase tracking-widest text-muted-foreground group-hover:text-foreground transition-colors font-medium select-none">Red</span>
+                            </label>
+
+                            <label class="cursor-pointer flex items-center gap-2 group">
+                                <div class="relative flex items-center justify-center">
+                                    <input type="checkbox" name="color" value="Blue" class="peer sr-only" {% if 'Blue' in selected_colors %}checked{% endif %} />
+                                    <div class="w-5 h-5 border border-border/80 rounded-sm peer-checked:bg-primary peer-checked:border-primary transition-all flex items-center justify-center">
+                                        <i class="fa-solid fa-check text-[10px] text-white opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+                                    </div>
+                                </div>
+                                <span class="text-[11px] uppercase tracking-widest text-muted-foreground group-hover:text-foreground transition-colors font-medium select-none">Blue</span>
+                            </label>
+                            
+                            <label class="cursor-pointer flex items-center gap-2 group">
+                                <div class="relative flex items-center justify-center">
+                                    <input type="checkbox" name="color" value="Green" class="peer sr-only" {% if 'Green' in selected_colors %}checked{% endif %} />
+                                    <div class="w-5 h-5 border border-border/80 rounded-sm peer-checked:bg-primary peer-checked:border-primary transition-all flex items-center justify-center">
+                                        <i class="fa-solid fa-check text-[10px] text-white opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+                                    </div>
+                                </div>
+                                <span class="text-[11px] uppercase tracking-widest text-muted-foreground group-hover:text-foreground transition-colors font-medium select-none">Green</span>
+                            </label>
+                            
+                            <label class="cursor-pointer flex items-center gap-2 group">
+                                <div class="relative flex items-center justify-center">
+                                    <input type="checkbox" name="color" value="Grey" class="peer sr-only" {% if 'Grey' in selected_colors %}checked{% endif %} />
+                                    <div class="w-5 h-5 border border-border/80 rounded-sm peer-checked:bg-primary peer-checked:border-primary transition-all flex items-center justify-center">
+                                        <i class="fa-solid fa-check text-[10px] text-white opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+                                    </div>
+                                </div>
+                                <span class="text-[11px] uppercase tracking-widest text-muted-foreground group-hover:text-foreground transition-colors font-medium select-none">Grey</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <hr class="border-border/60 mx-6">
+                    
+                    <!-- Price range selectors -->
+                    <div class="px-6">
+                        <h3 class="text-[10px] uppercase tracking-[0.3em] text-muted-foreground font-semibold mb-4">Price Range</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-wider text-muted-foreground/80 mb-1.5 font-medium">Min Price</label>
+                                <select name="min_price" class="w-full bg-white border border-border/80 px-3 py-2 text-xs uppercase tracking-wider text-foreground focus:border-foreground focus:outline-none transition-colors">
+                                    <option value="" {% if not min_price or min_price == '' %}selected{% endif %}>Select</option>
+                                    <option value="0" {% if min_price == '0' %}selected{% endif %}>₹0</option>
+                                    <option value="50" {% if min_price == '50' %}selected{% endif %}>₹50</option>
+                                    <option value="100" {% if min_price == '100' %}selected{% endif %}>₹100</option>
+                                    <option value="150" {% if min_price == '150' %}selected{% endif %}>₹150</option>
+                                    <option value="200" {% if min_price == '200' %}selected{% endif %}>₹200</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-wider text-muted-foreground/80 mb-1.5 font-medium">Max Price</label>
+                                <select name="max_price" class="w-full bg-white border border-border/80 px-3 py-2 text-xs uppercase tracking-wider text-foreground focus:border-foreground focus:outline-none transition-colors">
+                                    <option value="" {% if not max_price or max_price == '' %}selected{% endif %}>Select</option>
+                                    <option value="50" {% if max_price == '50' %}selected{% endif %}>₹50</option>
+                                    <option value="100" {% if max_price == '100' %}selected{% endif %}>₹100</option>
+                                    <option value="200" {% if max_price == '200' %}selected{% endif %}>₹200</option>
+                                    <option value="500" {% if max_price == '500' %}selected{% endif %}>₹500</option>
+                                    <option value="1000" {% if max_price == '1000' %}selected{% endif %}>₹1000+</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                
+            </div>
+            
+            <!-- Drawer Apply Buttons -->
+            <div class="px-6 py-5 border-t border-border/60 bg-card select-none">
+                <button type="submit" form="drawer-filter-form" id="apply-drawer-filters" class="w-full bg-primary text-white py-4.5 text-[11px] uppercase tracking-[0.3em] hover:bg-foreground transition-colors duration-300 shadow-sm" style="padding-top: 1.125rem; padding-bottom: 1.125rem;">
+                    Apply Filters
+                </button>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Editorial Footer -->
+    <footer class="border-t border-border/60 bg-card/45 mt-auto select-none">
+        <div class="max-w-7xl mx-auto px-6 sm:px-10 py-10 flex flex-col sm:flex-row justify-between gap-6 text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-muted-foreground items-center">
+            
+            <div class="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
+                <a href="/" class="font-serif leading-none text-base tracking-tight select-none">
+                    <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+                </a>
+                <span class="text-muted-foreground/60 font-sans">— Your premier fashion & lifestyle store</span>
+            </div>
+            
+            <div class="flex gap-6 font-medium">
+                <a href="{% url 'help' %}" class="hover:text-foreground transition-colors">Help</a>
+                <a href="{% url 'shipping' %}" class="hover:text-foreground transition-colors">Shipping</a>
+                <a href="{% url 'returns' %}" class="hover:text-foreground transition-colors">Returns</a>
+                <a href="{% url 'privacy' %}" class="hover:text-foreground transition-colors">Privacy</a>
+                <a href="{% url 'terms' %}" class="hover:text-foreground transition-colors">Terms</a>
+            </div>
+            
+        </div>
+    </footer>
+
+    <!-- Mobile Navigation Menu Drawer -->
+    <div id="mobile-menu-wrapper" class="fixed inset-0 z-[100] overflow-hidden hidden" aria-modal="true" role="dialog">
+        <!-- Backdrop -->
+        <div id="mobile-menu-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-xs transition-opacity duration-300 opacity-0"></div>
+        
+        <!-- Drawer Panel -->
+        <div id="mobile-menu-panel" class="absolute top-0 right-0 h-full w-[80%] max-w-[320px] bg-background shadow-2xl border-l border-border/40 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col z-[101]">
+            
+            <!-- Drawer Header -->
+            <div class="flex items-center justify-between px-6 py-5 border-b border-border/60 select-none">
+                <span class="font-serif text-lg tracking-wider uppercase text-foreground">Menu</span>
+                <button id="close-mobile-menu" class="text-muted-foreground hover:text-foreground transition-colors p-1" aria-label="Close menu">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <!-- Drawer Scrollable Content -->
+            <div class="flex-1 overflow-y-auto py-6 select-none flex flex-col gap-6">
+                
+                <!-- Links -->
+                <nav class="flex flex-col px-6 gap-4 text-[11px] uppercase tracking-[0.25em] font-semibold text-muted-foreground">
+                    <a href="{% url 'store' %}" class="hover:text-primary transition-colors py-2">Store</a>
+                    {% for cat in links %}
+                        <a href="{{ cat.get_url }}" class="hover:text-primary transition-colors py-2">{{ cat.category_name }}</a>
+                    {% endfor %}
+                </nav>
+                
+                <hr class="border-border/60 mx-6">
+                
+                <!-- Auth / User -->
+                <div class="px-6 flex flex-col gap-4 text-[11px] uppercase tracking-[0.25em] font-semibold">
+                    {% if user.id is None %}
+                        <a href="{% url 'login' %}" class="text-foreground hover:text-primary transition-colors py-2">Sign in</a>
+                        <a href="{% url 'register' %}" class="text-foreground hover:text-primary transition-colors py-2">Register</a>
+                    {% else %}
+                        <div class="text-muted-foreground/60 mb-2 normal-case tracking-normal text-xs">Signed in as <span class="font-bold text-foreground">{{ user.first_name }}</span></div>
+                        <a href="{% url 'dashboard' %}" class="text-foreground hover:text-primary transition-colors py-2">Dashboard</a>
+                        <a href="{% url 'logout' %}" class="text-rose-600 hover:text-rose-800 transition-colors py-2">Sign out</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Native Lightweight JS for Sliding transitions overlay drawer -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Existing Filter Drawer Logic
+            const drawerWrapper = document.getElementById('filter-drawer-wrapper');
+            const drawerBackdrop = document.getElementById('drawer-backdrop');
+            const drawerPanel = document.getElementById('drawer-panel');
+            
+            const openButtons = [
+                document.getElementById('open-filter-drawer'),
+                document.getElementById('open-filter-drawer-mobile')
+            ];
+            const closeButton = document.getElementById('close-filter-drawer');
+            const applyButton = document.getElementById('apply-drawer-filters');
+            
+            function openDrawer() {
+                if(drawerWrapper) {
+                    drawerWrapper.classList.remove('hidden');
+                    setTimeout(() => {
+                        drawerBackdrop.classList.remove('opacity-0');
+                        drawerBackdrop.classList.add('opacity-100');
+                        drawerPanel.classList.remove('translate-x-full');
+                        drawerPanel.classList.add('translate-x-0');
+                    }, 10);
+                }
+            }
+            
+            function closeDrawer() {
+                if(drawerBackdrop) {
+                    drawerBackdrop.classList.remove('opacity-100');
+                    drawerBackdrop.classList.add('opacity-0');
+                    drawerPanel.classList.remove('translate-x-0');
+                    drawerPanel.classList.add('translate-x-full');
+                    
+                    setTimeout(() => {
+                        drawerWrapper.classList.add('hidden');
+                    }, 300);
+                }
+            }
+            
+            openButtons.forEach(btn => {
+                if(btn) btn.addEventListener('click', openDrawer);
+            });
+            
+            if(closeButton) closeButton.addEventListener('click', closeDrawer);
+            if(drawerBackdrop) drawerBackdrop.addEventListener('click', closeDrawer);
+            if(applyButton) applyButton.addEventListener('click', closeDrawer);
+            
+            // New Mobile Menu Drawer Logic
+            const menuWrapper = document.getElementById('mobile-menu-wrapper');
+            const menuBackdrop = document.getElementById('mobile-menu-backdrop');
+            const menuPanel = document.getElementById('mobile-menu-panel');
+            
+            const openMenuBtn = document.getElementById('open-mobile-menu');
+            const closeMenuBtn = document.getElementById('close-mobile-menu');
+            
+            function openMenu() {
+                if(!menuWrapper) return;
+                menuWrapper.classList.remove('hidden');
+                setTimeout(() => {
+                    menuBackdrop.classList.remove('opacity-0');
+                    menuBackdrop.classList.add('opacity-100');
+                    menuPanel.classList.remove('translate-x-full');
+                    menuPanel.classList.add('translate-x-0');
+                }, 10);
+            }
+            
+            function closeMenu() {
+                if(!menuWrapper) return;
+                menuBackdrop.classList.remove('opacity-100');
+                menuBackdrop.classList.add('opacity-0');
+                menuPanel.classList.remove('translate-x-0');
+                menuPanel.classList.add('translate-x-full');
+                
+                setTimeout(() => {
+                    menuWrapper.classList.add('hidden');
+                }, 300);
+            }
+            
+            if(openMenuBtn) openMenuBtn.addEventListener('click', openMenu);
+            if(closeMenuBtn) closeMenuBtn.addEventListener('click', closeMenu);
+            if(menuBackdrop) menuBackdrop.addEventListener('click', closeMenu);
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            $('.btn-toggle-wishlist').on('click', function(e) {
+                e.preventDefault();
+                var btn = $(this);
+                var icon = btn.find('i');
+                var productId = btn.data('product-id');
+                var url = "/store/wishlist/toggle/" + productId + "/";
+
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    success: function(response) {
+                        if (response.status === 'added') {
+                            btn.removeClass('text-muted-foreground hover:text-primary').addClass('text-primary');
+                            icon.removeClass('fa-regular').addClass('fa-solid text-rose-500');
+                        } else if (response.status === 'removed') {
+                            btn.removeClass('text-primary').addClass('text-muted-foreground hover:text-primary');
+                            icon.removeClass('fa-solid text-rose-500').addClass('fa-regular');
+                        }
+                    },
+                    error: function(xhr) {
+                        if(xhr.status === 401 || xhr.status === 403) {
+                            window.location.href = "{% url 'login' %}";
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

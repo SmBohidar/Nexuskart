@@ -1,0 +1,42 @@
+{% if messages %}
+<div class="message-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 350px;">
+    {% for message in messages %}
+    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert" style="border-radius: 8px; border-left: 5px solid {% if message.tags == 'error' %}#dc3545{% elif message.tags == 'success' %}#28a745{% elif message.tags == 'warning' %}#ffc107{% else %}#17a2b8{% endif %}; background-color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; padding: 15px 20px;">
+        <div style="font-size: 1.5rem; margin-right: 15px;">
+            {% if message.tags == 'error' %}
+                <i class="fas fa-exclamation-circle" style="color: #dc3545;"></i>
+            {% elif message.tags == 'success' %}
+                <i class="fas fa-check-circle" style="color: #28a745;"></i>
+            {% elif message.tags == 'warning' %}
+                <i class="fas fa-exclamation-triangle" style="color: #ffc107;"></i>
+            {% else %}
+                <i class="fas fa-info-circle" style="color: #17a2b8;"></i>
+            {% endif %}
+        </div>
+        <div style="color: #333; flex-grow: 1; font-weight: 500;">
+            {{ message }}
+        </div>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="this.closest('.alert').remove();" style="outline: none; background: transparent; border: none; font-size: 1.5rem; line-height: 1; opacity: 0.5; margin-left: 15px; cursor: pointer;">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+    setTimeout(function() {
+        if (typeof jQuery !== 'undefined') {
+            $('.message-container .alert').fadeOut('slow', function() {
+                $(this).remove();
+            });
+        } else {
+            const alerts = document.querySelectorAll('.message-container .alert');
+            alerts.forEach(function(alert) {
+                alert.style.transition = "opacity 0.5s ease";
+                alert.style.opacity = "0";
+                setTimeout(() => alert.remove(), 500);
+            });
+        }
+    }, 5000);
+</script>
+{% endif %}

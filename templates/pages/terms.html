@@ -1,0 +1,130 @@
+{% load static %}
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Terms of Service · Nexuskart</title>
+    
+    <link href="{% static 'image/nexuskartlogo-64x64.webp' %}" rel="shortcut-icon" sizes="64x64" type="image/webp">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Work+Sans:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: 'oklch(0.97 0.012 85)',
+                        foreground: 'oklch(0.18 0.025 160)',
+                        card: 'oklch(0.99 0.008 85)',
+                        primary: 'oklch(0.28 0.055 160)',
+                        secondary: 'oklch(0.93 0.015 85)',
+                        accent: 'oklch(0.72 0.115 80)',
+                        'muted-foreground': 'oklch(0.45 0.02 150)',
+                        border: 'oklch(0.85 0.012 85)',
+                        input: 'oklch(0.88 0.012 85)',
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+                        sans: ['"Work Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Work Sans', sans-serif; background-color: oklch(0.97 0.012 85); color: oklch(0.18 0.025 160); -webkit-font-smoothing: antialiased; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: oklch(0.85 0.012 85); border-radius: 3px; }
+    </style>
+</head>
+<body class="min-h-screen bg-background text-foreground flex flex-col">
+
+    <header class="border-b border-border/60 bg-background z-40">
+        <div class="max-w-7xl mx-auto px-6 sm:px-10 py-5 flex items-center justify-between md:justify-start gap-8">
+            <a href="/" class="font-serif leading-none text-2xl sm:text-3xl tracking-tight select-none">
+                <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+            </a>
+            
+            <div class="hidden md:flex items-center gap-8 flex-1 ml-8 select-none">
+                <span class="text-[11px] uppercase tracking-[0.3em] text-muted-foreground font-bold">Customer Care</span>
+                <span class="text-border/80">|</span>
+                <a href="{% url 'help' %}" class="text-[11px] uppercase tracking-[0.25em] text-muted-foreground hover:text-foreground transition-colors font-medium">FAQ</a>
+                <a href="{% url 'shipping' %}" class="text-[11px] uppercase tracking-[0.25em] text-muted-foreground hover:text-foreground transition-colors font-medium">Shipping</a>
+                <a href="{% url 'returns' %}" class="text-[11px] uppercase tracking-[0.25em] text-muted-foreground hover:text-foreground transition-colors font-medium">Returns</a>
+                <a href="{% url 'privacy' %}" class="text-[11px] uppercase tracking-[0.25em] text-muted-foreground hover:text-foreground transition-colors font-medium">Privacy</a>
+                <a href="{% url 'terms' %}" class="text-[11px] uppercase tracking-[0.25em] text-muted-foreground hover:text-foreground transition-colors font-medium">Terms</a>
+            </div>
+
+            <div class="flex items-center gap-6 ml-auto">
+                {% if user.is_authenticated %}
+                <div class="hidden sm:block text-right text-[10px] uppercase tracking-[0.25em] select-none">
+                    <div class="text-muted-foreground">Member</div>
+                    <a href="{% url 'dashboard' %}" class="text-foreground hover:text-primary transition-colors font-medium">Dashboard</a>
+                </div>
+                {% else %}
+                <div class="hidden sm:block text-right text-[10px] uppercase tracking-[0.25em] select-none">
+                    <a href="{% url 'login' %}" class="text-foreground hover:text-primary transition-colors font-medium">Log in</a>
+                </div>
+                {% endif %}
+                <a href="{% url 'cart' %}" class="relative p-2 text-foreground hover:text-primary transition-colors" aria-label="Cart">
+                    <i class="fa-solid fa-bag-shopping text-xl"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-3xl mx-auto w-full px-6 sm:px-10 py-16 pb-32">
+        <p class="text-[10px] uppercase tracking-[0.35em] text-accent mb-4 font-bold">LEGAL</p>
+        <h1 class="font-serif text-5xl sm:text-6xl tracking-tight text-foreground mb-12">
+            Terms of <em class="text-primary italic font-light">Service</em>
+        </h1>
+        
+        <div class="space-y-12">
+            <section class="space-y-4">
+                <h3 class="font-serif text-3xl font-semibold">1. Acceptance of Terms</h3>
+                <p class="text-muted-foreground leading-relaxed text-sm">
+                    By accessing and using Nexuskart, you agree to be bound by these Terms of Service. If you do not agree with any part of these terms, you may not use our services or purchase our products.
+                </p>
+            </section>
+            
+            <section class="space-y-4">
+                <h3 class="font-serif text-3xl font-semibold">2. User Accounts</h3>
+                <p class="text-muted-foreground leading-relaxed text-sm">
+                    When you create an account with us, you must provide accurate, complete, and current information at all times. Failure to do so constitutes a breach of the Terms, which may result in immediate termination of your account on our platform.
+                </p>
+            </section>
+            
+            <section class="space-y-4">
+                <h3 class="font-serif text-3xl font-semibold">3. Product Availability & Pricing</h3>
+                <p class="text-muted-foreground leading-relaxed text-sm">
+                    All products are subject to availability. We reserve the right to discontinue any product at any time. Prices for our products are subject to change without notice. We shall not be liable to you or to any third party for any modification, price change, suspension, or discontinuance of the service.
+                </p>
+            </section>
+        </div>
+    </main>
+
+    <footer class="border-t border-border/60 bg-card/45 mt-auto select-none">
+        <div class="max-w-7xl mx-auto px-6 sm:px-10 py-10 flex flex-col sm:flex-row justify-between gap-6 text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-muted-foreground items-center">
+            <div class="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
+                <a href="/" class="font-serif leading-none text-base tracking-tight select-none">
+                    <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+                </a>
+                <span class="text-muted-foreground/60 font-sans">— Your premier fashion & lifestyle store</span>
+            </div>
+            <div class="flex gap-6 font-medium">
+                <a href="{% url 'help' %}" class="hover:text-foreground transition-colors">Help</a>
+                <a href="{% url 'shipping' %}" class="hover:text-foreground transition-colors">Shipping</a>
+                <a href="{% url 'returns' %}" class="hover:text-foreground transition-colors">Returns</a>
+                <a href="{% url 'privacy' %}" class="hover:text-foreground transition-colors">Privacy</a>
+                <a href="{% url 'terms' %}" class="hover:text-foreground transition-colors">Terms</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

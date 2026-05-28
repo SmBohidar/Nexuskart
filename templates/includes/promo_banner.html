@@ -1,0 +1,38 @@
+{% if promotion_offer %}
+<style>
+    @keyframes promo-marquee {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+    }
+
+    .promo-marquee-track {
+        width: max-content;
+        animation: promo-marquee 42s linear infinite;
+    }
+
+    .promo-marquee:hover .promo-marquee-track {
+        animation-play-state: paused;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .promo-marquee-track {
+            animation: none;
+        }
+    }
+</style>
+
+<div class="promo-marquee relative overflow-hidden bg-primary text-white border border-primary shadow-sm select-none">
+    <div class="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-primary to-transparent z-10"></div>
+    <div class="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-primary to-transparent z-10"></div>
+    <div class="promo-marquee-track flex items-center whitespace-nowrap py-2.5 text-[10px] sm:text-[11px] uppercase tracking-[0.28em] font-semibold">
+        {% for i in "123456" %}
+        <span class="mx-5">{{ promotion_offer.headline }}</span>
+        <span class="text-white/55">|</span>
+        <span class="mx-5">Use code <strong class="font-mono tracking-[0.22em] text-white">{{ promotion_offer.code }}</strong></span>
+        <span class="text-white/55">|</span>
+        <span class="mx-5">{{ promotion_offer.body }}</span>
+        <span class="text-white/55">|</span>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}

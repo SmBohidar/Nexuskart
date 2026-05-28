@@ -1,0 +1,233 @@
+{% load static %}
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Manage Inventory · Admin Dashboard</title>
+    
+    <link href="{% static 'image/nexuskartlogo-64x64.webp' %}" rel="shortcut-icon" sizes="64x64" type="image/webp">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Work+Sans:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: 'oklch(0.97 0.012 85)',
+                        foreground: 'oklch(0.18 0.025 160)',
+                        card: 'oklch(0.99 0.008 85)',
+                        primary: 'oklch(0.28 0.055 160)',
+                        secondary: 'oklch(0.93 0.015 85)',
+                        accent: 'oklch(0.72 0.115 80)',
+                        'muted-foreground': 'oklch(0.45 0.02 150)',
+                        border: 'oklch(0.85 0.012 85)',
+                        input: 'oklch(0.88 0.012 85)',
+                        destructive: 'oklch(0.52 0.18 28)',
+                        'destructive-foreground': 'oklch(0.97 0.012 85)'
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+                        sans: ['"Work Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                        mono: ['Courier New', 'Courier', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background-color: oklch(0.97 0.012 85);
+            color: oklch(0.18 0.025 160);
+            -webkit-font-smoothing: antialiased;
+        }
+        .ambient-glow {
+            position: absolute;
+            border-radius: 9999px;
+            filter: blur(120px);
+            opacity: 0.15;
+            z-index: 0;
+            pointer-events: none;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: oklch(0.85 0.012 85); border-radius: 3px; }
+    </style>
+</head>
+<body class="min-h-screen bg-background text-foreground flex flex-col relative overflow-x-hidden">
+
+    <!-- Ambient backdrop blobs -->
+    <div class="ambient-glow bg-primary w-[500px] h-[500px] -top-[200px] -left-[100px]"></div>
+    <div class="ambient-glow bg-accent w-[400px] h-[400px] bottom-[10%] right-[-100px]"></div>
+
+    <!-- Django Static Messages System -->
+    {% if messages %}
+    <div class="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm">
+        {% for message in messages %}
+        <div class="bg-white border-l-4 {% if message.tags == 'error' %}border-destructive{% else %}border-primary{% endif %} px-5 py-4 shadow-lg flex items-start gap-4 transition-all duration-300" role="alert">
+            <div class="text-xl">
+                {% if message.tags == 'error' %}
+                    <i class="fa-solid fa-circle-exclamation text-destructive"></i>
+                {% else %}
+                    <i class="fa-solid fa-circle-check text-primary"></i>
+                {% endif %}
+            </div>
+            <div class="flex-1">
+                <p class="text-xs uppercase tracking-widest text-muted-foreground">Notification</p>
+                <p class="text-sm font-semibold mt-0.5">{{ message }}</p>
+            </div>
+            <button onclick="this.parentElement.remove();" class="text-muted-foreground/60 hover:text-foreground text-sm leading-none">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Top Navigation Header -->
+    <header class="border-b border-border/60 bg-background/80 backdrop-blur-sm sticky top-0 z-30 select-none">
+        <div class="max-w-7xl mx-auto px-6 sm:px-10 py-5 flex items-center justify-between gap-6">
+            <a href="/" class="font-serif leading-none text-2xl sm:text-3xl tracking-tight select-none">
+                <span class="font-medium text-foreground">N</span><span class="italic font-light text-foreground">exus</span><span class="italic font-light text-primary">k</span><span class="font-medium text-primary">art</span>
+            </a>
+            <div class="hidden md:flex items-center gap-3">
+                <span class="inline-flex items-center gap-1.5 bg-foreground text-background px-3 py-1.5 text-[9px] uppercase tracking-[0.25em] font-bold">
+                    <i class="fa-solid fa-shield-halved text-[9px]"></i> Admin
+                </span>
+                <span class="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Inventory Manager</span>
+            </div>
+            <div class="flex-1"></div>
+            <div class="flex items-center gap-4">
+                <a href="{% url 'admin_dashboard' %}" class="inline-flex items-center gap-2 border border-border bg-card px-4 py-2 text-[11px] uppercase tracking-[0.25em] hover:border-foreground hover:bg-secondary/20 transition-all font-semibold select-none">
+                    <i class="fa-solid fa-arrow-left text-[10px]"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="flex-1 max-w-7xl mx-auto px-6 sm:px-10 py-12 w-full relative z-10">
+        <form method="POST" action="{% url 'admin_manage_inventory' %}">
+            {% csrf_token %}
+            <div class="flex flex-wrap items-end justify-between gap-5 mb-6">
+                <div>
+                    <p class="text-[10px] uppercase tracking-[0.3em] text-accent font-bold">SECTION 01</p>
+                    <h2 class="font-serif text-3xl text-foreground font-bold mt-1">Manage Inventory</h2>
+                </div>
+                <div class="flex items-center gap-3">
+                    <a href="{% url 'admin_add_product' %}" class="inline-flex items-center gap-2 px-5 py-2.5 text-[11px] uppercase tracking-[0.2em] font-bold border border-border bg-card hover:bg-secondary/20 transition-all shadow-xs">
+                        <i class="fa-solid fa-plus text-[10px]"></i> Add Product
+                    </a>
+                    <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 text-[11px] uppercase tracking-[0.2em] font-bold bg-primary text-white hover:opacity-90 transition-opacity shadow-xs">
+                        <i class="fa-solid fa-floppy-disk text-[10px]"></i> Save Changes
+                    </button>
+                </div>
+            </div>
+
+            <div class="border border-border bg-card overflow-hidden shadow-xs">
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse text-left text-sm min-w-[900px]">
+                        <thead>
+                            <tr class="bg-secondary/15 text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold border-b border-border/60">
+                                <th class="px-6 py-4">Product Name</th>
+                                <th class="px-6 py-4">Price</th>
+                                <th class="px-6 py-4">Stock</th>
+                                <th class="px-6 py-4">Category</th>
+                                <th class="px-6 py-4">Modified Date</th>
+                                <th class="px-6 py-4 text-center">Is Available</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border/40">
+                            {% for p in products %}
+                            <tr class="hover:bg-secondary/20 transition-colors text-foreground">
+                                <td class="px-6 py-4 font-semibold text-foreground">
+                                    {{ p.product_name }}
+                                </td>
+                                <td class="px-6 py-4 font-mono font-medium">
+                                    ₹{{ p.price }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    <input type="number" name="stock_{{ p.id }}" value="{{ p.stock }}" min="0" class="w-24 px-3 py-1.5 border border-border bg-background focus:outline-none focus:border-primary font-mono text-sm transition-colors">
+                                </td>
+                                <td class="px-6 py-4 text-muted-foreground">
+                                    {{ p.category.category_name }}
+                                </td>
+                                <td class="px-6 py-4 text-xs text-muted-foreground">
+                                    {{ p.modified_date|date:"N j, Y, g:i a" }}
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    {% if p.is_available %}
+                                        <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-circle-xmark text-destructive"></i>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="px-6 py-12 text-center text-sm text-muted-foreground">
+                                    No products found.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Pagination Block -->
+            {% if products.has_other_pages %}
+            <div class="mt-6 flex flex-col sm:flex-row items-center justify-between border border-border bg-card px-6 py-4 gap-4 select-none shadow-xs">
+                <div class="text-xs text-muted-foreground font-medium">
+                    Showing Page <span class="font-bold text-foreground">{{ products.number }}</span> of <span class="font-bold text-foreground">{{ products.paginator.num_pages }}</span> (Total {{ products.paginator.count }} products)
+                </div>
+                
+                <div class="flex items-center gap-1.5">
+                    {% if products.has_previous %}
+                    <a href="?page={{ products.previous_page_number }}" class="inline-flex items-center justify-center px-4 py-2 text-[10px] uppercase tracking-[0.2em] font-bold border border-border bg-white hover:border-foreground hover:bg-secondary/10 transition-all shadow-xs">
+                        <i class="fa-solid fa-chevron-left text-[9px] mr-2"></i> Previous
+                    </a>
+                    {% else %}
+                    <span class="inline-flex items-center justify-center px-4 py-2 text-[10px] uppercase tracking-[0.2em] font-bold border border-border/40 text-muted-foreground/45 cursor-not-allowed select-none bg-secondary/5">
+                        <i class="fa-solid fa-chevron-left text-[9px] mr-2"></i> Previous
+                    </span>
+                    {% endif %}
+
+                    {% for i in products.paginator.page_range %}
+                        {% if products.number == i %}
+                        <span class="inline-flex items-center justify-center w-8 h-8 text-[10px] font-bold bg-primary text-white border border-primary">
+                            {{ i }}
+                        </span>
+                        {% elif i > products.number|add:-3 and i < products.number|add:3 %}
+                        <a href="?page={{ i }}" class="inline-flex items-center justify-center w-8 h-8 text-[10px] font-bold border border-border bg-white hover:border-foreground hover:bg-secondary/15 transition-all">
+                            {{ i }}
+                        </a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if products.has_next %}
+                    <a href="?page={{ products.next_page_number }}" class="inline-flex items-center justify-center px-4 py-2 text-[10px] uppercase tracking-[0.2em] font-bold border border-border bg-white hover:border-foreground hover:bg-secondary/10 transition-all shadow-xs">
+                        Next <i class="fa-solid fa-chevron-right text-[9px] ml-2"></i>
+                    </a>
+                    {% else %}
+                    <span class="inline-flex items-center justify-center px-4 py-2 text-[10px] uppercase tracking-[0.2em] font-bold border border-border/40 text-muted-foreground/45 cursor-not-allowed select-none bg-secondary/5">
+                        Next <i class="fa-solid fa-chevron-right text-[9px] ml-2"></i>
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="mt-8 flex justify-end sticky bottom-6">
+                <button type="submit" class="inline-flex items-center gap-2 px-8 py-3.5 text-xs uppercase tracking-[0.2em] font-bold bg-primary text-white hover:opacity-90 transition-opacity shadow-lg rounded-sm">
+                    <i class="fa-solid fa-floppy-disk"></i> Bulk Save Inventory
+                </button>
+            </div>
+        </form>
+    </main>
+</body>
+</html>
